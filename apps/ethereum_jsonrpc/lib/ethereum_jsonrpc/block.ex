@@ -602,7 +602,7 @@ defmodule EthereumJSONRPC.Block do
   end
 
   # Arbitrum fields
-  defp entry_to_elixir({"l1BlockNumber", _}) do
+  defp entry_to_elixir({key, _}) when key in ~w(l1BlockNumber sendCount sendRoot) do
     {:ignore, :ignore}
   end
 end
