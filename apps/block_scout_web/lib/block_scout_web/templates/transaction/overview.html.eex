@@ -2,7 +2,18 @@
 <% from_address_hash = @transaction.from_address_hash %>
 <% to_address_hash = @transaction.to_address_hash %>
 <% created_address_hash = @transaction.created_contract_address_hash %>
-<% type = if @transaction.type == 2, do: "2 (EIP-1559)", else: @transaction.type %>
+<% type =
+   case @transaction.type do
+   2 -> "EIP-1559 (2)"
+   100 -> "Deposit into Arbitrum (100)"
+   101 -> "Bridge Unsigned Transaction (101)"
+   102 -> "Bridge Contract Transaction (102)"
+   104 -> "Retryable Execution (104)"
+   105 -> "Retryable Submission (105)"
+   106 -> "ArbOS Internal Transaction (106)"
+   120 -> "Arbitrum Legacy Transaction (120)"
+   _ -> @transaction.type
+end %>
 <% base_fee_per_gas = if block, do: block.base_fee_per_gas, else: nil %>
 <% max_priority_fee_per_gas = @transaction.max_priority_fee_per_gas %>
 <% max_fee_per_gas = @transaction.max_fee_per_gas %>
