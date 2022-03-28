@@ -429,15 +429,24 @@ end %>
               </dd>
             </dl>
           <% end %>
-          <!-- Gas Used by Transaction -->
+          <!-- L2 Gas Used by Transaction -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted transaction-gas-used">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Actual gas amount used by the transaction.") %>
-              <%= gettext "Gas Used by Transaction" %>
+                text: gettext("Actual L2 gas amount used by the transaction.") %>
+              <%= gettext "L2 Gas Used" %>
             </dt>
             <% gas_used_perc = gas_used_perc(@transaction) %>
             <dd class="col-sm-9 col-lg-10"> <%= gas_used(@transaction) %> <%= if gas_used_perc, do: "| #{gas_used_perc}%" %></dd>
+          </dl>
+          <!-- L1 Gas Used by Transaction -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("L1 gas used to post the transaction.") %>
+              <%= gettext "L1 Gas Used" %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10"> <%= format_gas_limit(@transaction.l1_gas_used) %> </dd>
           </dl>
           <!-- Nonce, Index in Block -->
           <dl class="row">

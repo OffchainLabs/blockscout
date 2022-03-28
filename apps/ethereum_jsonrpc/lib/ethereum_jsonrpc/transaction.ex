@@ -55,6 +55,7 @@ defmodule EthereumJSONRPC.Transaction do
           block_number: non_neg_integer(),
           from_address_hash: EthereumJSONRPC.address(),
           gas: non_neg_integer(),
+          l1_gas_used: non_neg_integer(),
           gas_price: non_neg_integer(),
           hash: EthereumJSONRPC.hash(),
           index: non_neg_integer(),

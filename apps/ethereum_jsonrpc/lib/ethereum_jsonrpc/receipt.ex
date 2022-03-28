@@ -257,7 +257,7 @@ defmodule EthereumJSONRPC.Receipt do
        do: {:ok, entry}
 
   defp entry_to_elixir({key, quantity})
-       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex) do
+       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex l1GasUsed) do
     result =
       if is_nil(quantity) do
         nil
@@ -299,8 +299,8 @@ defmodule EthereumJSONRPC.Receipt do
     :ignore
   end
 
-  # Arbitrum fields
-  defp entry_to_elixir({key, _}) when key in ~w(returnData returnCode feeStats l1BlockNumber l1GasUsed) do
+  # Arbitrum Classic fields
+  defp entry_to_elixir({key, _}) when key in ~w(returnData returnCode feeStats l1BlockNumber) do
     :ignore
   end
 
