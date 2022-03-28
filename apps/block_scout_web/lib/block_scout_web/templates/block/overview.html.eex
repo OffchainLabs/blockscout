@@ -63,6 +63,21 @@
               <% end %>
             </dd>
           </dl>
+          <!-- L1 Block Height -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+              text: gettext("The most recent L1 block height as of this L2 block.") %>
+              <%= if block_type(@block) == "Block" do %>
+                <%= gettext("L1 Block Height") %>
+              <% else %>
+                <%= gettext("%{block_type} Height", block_type: block_type(@block)) %>
+              <% end %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10" data-test="block_detail_number">
+              <%= @block.l1_number %>
+            </dd>
+          </dl>
           <!-- Timestamp -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
@@ -151,25 +166,28 @@
               </dd>
             </dl>
           <% end %>
-          <!-- Difficulty -->
+
+          <!-- Send Count -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-              text: gettext("Block difficulty for miner, used to calibrate block generation time (Note: constant in POA based networks).") %>
-              <%= gettext("Difficulty") %>
+              text: gettext("The cumulative number of L2🠖L1 transactions as of this block.") %>
+              <%= gettext("Send Count") %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"><%= @block.difficulty |> Decimal.to_integer() |> BlockScoutWeb.Cldr.Number.to_string! %></dd>
+            <dd class="col-sm-9 col-lg-10"><%= @block.send_count |> Decimal.to_integer() |> BlockScoutWeb.Cldr.Number.to_string! %></dd>
           </dl>
+          
+          <!-- Send Root -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+              text: gettext("The root of the Merkle tree representing all L2🠖L1 transactions as of this block.") %>
+              <%= gettext("Send Root") %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10"><%= to_string(@block.send_root) %></dd>
+          </dl>
+          
           <%= if block_type(@block) == "Block" do %>
-            <!-- Total Difficulty -->
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Total difficulty of the chain until this block.") %>
-                <%= gettext("Total Difficulty") %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"><%= @block.total_difficulty |> Decimal.to_integer() |> BlockScoutWeb.Cldr.Number.to_string! %></dd>
-            </dl>
             <!-- Gas Used -->
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
@@ -187,15 +205,6 @@
                 <%= gettext("Gas Limit") %>
               </dt>
               <dd class="col-sm-9 col-lg-10"><%= BlockScoutWeb.Cldr.Number.to_string!(@block.gas_limit) %></dd>
-            </dl>
-            <!-- Nonce -->
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("64-bit hash of value verifying proof-of-work (note: null for POA chains).") %>
-                <%= gettext("Nonce") %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"><%= to_string(@block.nonce) %></dd>
             </dl>
           <% end %>
           <%= if !is_nil(@block.base_fee_per_gas) do%>

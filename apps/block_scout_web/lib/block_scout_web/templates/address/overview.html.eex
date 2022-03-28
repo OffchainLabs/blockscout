@@ -136,7 +136,8 @@
                 <%= gettext("Creator") %>
               </dt>
               <dd class="col-sm-8 col-md-8 col-lg-9" data-test="address_contract_creator">
-                <%= if from_address_hash do %>
+                <%= cond do %>
+                <%= from_address_hash -> %>
                   <%= link(
                     trimmed_hash(from_address_hash(@address)),
                     to: address_path(@conn, :show, from_address_hash(@address))
@@ -149,7 +150,12 @@
                     to: transaction_path(@conn, :show, transaction_hash(@address)),
                     "data-test": "transaction_hash_link"
                   ) %>
-                <% else %>
+                  
+                <% current_address == "0x00000000000000000000000000000000000a4b05" ||
+                   String.slice(current_address, 0..-3) == "0x00000000000000000000000000000000000000" -> %>
+                <%= gettext "Created at Genesis" %>
+
+                <% true -> %>
                   <p class="alert alert-danger" role="alert"><%= gettext("Error: Could not determine contract creator.") %></p>
                 <% end %>
               </dd>

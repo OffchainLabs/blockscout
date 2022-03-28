@@ -97,7 +97,8 @@ defmodule BlockScoutWeb.API.RPC.AddressView do
       "input" => "#{transaction.input}",
       "contractAddress" => "#{transaction.created_contract_address_hash}",
       "cumulativeGasUsed" => "#{transaction.cumulative_gas_used}",
-      "gasUsed" => "#{transaction.gas_used}"
+      "gasUsed" => "#{transaction.gas_used}",
+      "l1GasUsed" => "#{transaction.l1_gas_used}"
     }
   end
 
@@ -120,6 +121,7 @@ defmodule BlockScoutWeb.API.RPC.AddressView do
       "contractAddress" => "#{transaction.created_contract_address_hash}",
       "cumulativeGasUsed" => "#{transaction.cumulative_gas_used}",
       "gasUsed" => "#{transaction.gas_used}",
+      "l1GasUsed" => "#{transaction.l1_gas_used}",
       "confirmations" => "#{transaction.confirmations}"
     }
   end
