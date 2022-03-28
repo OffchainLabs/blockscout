@@ -44,13 +44,13 @@
                 </li>
               </ul>
           </dl>
-          <!-- Block Height -->
+          <!-- L2 Block Height -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
               text: gettext("The block height of a particular block is defined as the number of blocks preceding it in the blockchain.") %>
               <%= if block_type(@block) == "Block" do %>
-                <%= gettext("Block Height") %>
+                <%= gettext("L2 Block Height") %>
               <% else %>
                 <%= gettext("%{block_type} Height", block_type: block_type(@block)) %>
               <% end %>
@@ -181,7 +181,7 @@
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-              text: gettext("The root of the Merkle tree representing all L2🠖L1 transactions as of this block.") %>
+              text: gettext("The root of the Merkle accumulator representing all L2🠖L1 transactions as of this block.") %>
               <%= gettext("Send Root") %>
             </dt>
             <dd class="col-sm-9 col-lg-10"><%= to_string(@block.send_root) %></dd>
