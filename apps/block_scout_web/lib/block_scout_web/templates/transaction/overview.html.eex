@@ -439,15 +439,17 @@ end %>
             <% gas_used_perc = gas_used_perc(@transaction) %>
             <dd class="col-sm-9 col-lg-10"> <%= gas_used(@transaction) %> <%= if gas_used_perc, do: "| #{gas_used_perc}%" %></dd>
           </dl>
+
           <!-- L1 Gas Used by Transaction -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("L1 gas used to post the transaction.") %>
-              <%= gettext "L1 Gas Used" %>
+                text: gettext("Fee paid to the L1 aggregator for posting this transaction (contributes to L2 Gas Used).") %>
+              <%= gettext "Poster Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_gas_limit(@transaction.l1_gas_used) %> </dd>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.l1_gas_used), :ether) %> </dd>
           </dl>
+
           <!-- Nonce, Index in Block -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">

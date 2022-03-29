@@ -137,7 +137,7 @@
                     call.output = toHex(log.memory.slice(call.outputOffset, call.outputOffset + call.outputLength));
                 }
             } else if (call.error === undefined) {
-                call.error = 'coming soon!';
+                call.error = 'internal failure';
             }
 
             delete call.outputOffset;

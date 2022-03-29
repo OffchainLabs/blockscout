@@ -14,7 +14,7 @@ defmodule Explorer.Repo.Migrations.CreateBlocks do
 
       # arbitrum fields
       add(:l1_number, :bigint, null: false)
-      add(:send_count, :numeric, null: false)
+      add(:send_count, :bigint, null: false)
       add(:send_root, :bytea, null: false)
 
       # not a foreign key to allow skipped blocks

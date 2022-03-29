@@ -86,7 +86,7 @@ defmodule Explorer.Chain.Block do
     field(:base_fee_per_gas, Wei)
     field(:is_empty, :boolean)
     field(:l1_number, :integer)
-    field(:send_count, :decimal)
+    field(:send_count, :integer)
     field(:send_root, Hash.Full)
 
     timestamps()
