@@ -19,12 +19,22 @@ console.log("Updating Postgres tables for L2 Arbitrum");
         console.log("Installing", name, 'at', address);
         let abi = JSON.parse(fs.readFileSync('data/' + name + '.abi'));
         let desc = fs.readFileSync('data/' + name + '.txt').toString().replaceAll('\n', '\n\r');
+        let code = Buffer.from('fe', 'hex');
+        let addr = Buffer.from(address, 'hex');
 
         await client.query(
             `INSERT INTO addresses (hash, contract_code, verified, inserted_at, updated_at)
-             VALUES ($1, 'ArbOS', true, now(), now())
+             VALUES ($1, $2, true, now(), now())
+             ON CONFLICT (hash) DO
+                 UPDATE SET contract_code = $2, verified = true, updated_at = now()`,
+            [addr, code],
+        );
+
+        await client.query(
+            `INSERT INTO address_coin_balances (address_hash, block_number, inserted_at, updated_at)
+             VALUES ($1, 0, now(), now())
              ON CONFLICT DO NOTHING`,
-            [Buffer.from(address, 'hex')],
+            [addr],
         );
         
         await client.query(
@@ -34,7 +44,7 @@ console.log("Updating Postgres tables for L2 Arbitrum");
              ON CONFLICT (address_hash) DO
                  UPDATE SET compiler_version = $3, abi = $4, contract_source_code = $5,
                  updated_at = now(), is_changed_bytecode = false`,
-            [name, Buffer.from(address, 'hex'), version, JSON.stringify(abi), desc],
+            [name, addr, version, JSON.stringify(abi), desc],
         );
 
         let contract = new ethers.utils.Interface(abi)
@@ -61,8 +71,8 @@ console.log("Updating Postgres tables for L2 Arbitrum");
         }
 
         await client.query(
-            `UPDATE smart_contracts SET is_changed_bytecode = false WHERE address_hash = $1`,
-            [Buffer.from(address, 'hex')],
+            `UPDATE smart_contracts SET is_changed_bytecode = false, updated_at = now() WHERE address_hash = $1`,
+            [addr],
         );
     }
     
