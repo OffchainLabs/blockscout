@@ -174,7 +174,7 @@
               text: gettext("The cumulative number of L2🠖L1 transactions as of this block.") %>
               <%= gettext("Send Count") %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"><%= @block.send_count |> Decimal.to_integer() |> BlockScoutWeb.Cldr.Number.to_string! %></dd>
+            <dd class="col-sm-9 col-lg-10"><%= @block.send_count %></dd>
           </dl>
           
           <!-- Send Root -->
@@ -188,6 +188,17 @@
           </dl>
           
           <%= if block_type(@block) == "Block" do %>
+
+            <!-- Delayed Messages -->
+            <dl class="row">
+              <dt class="col-sm-3 col-lg-2 text-muted">
+                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("The number of delayed L1🠖L2 messages read as of this block.") %>
+                <%= gettext("Delayed Messages") %>
+              </dt>
+              <dd class="col-sm-9 col-lg-10"><%= String.slice(to_string(@block.nonce), 2..-1) |> Integer.parse(16) |> elem(0) %></dd>
+            </dl>
+
             <!-- Gas Used -->
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
