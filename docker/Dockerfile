@@ -54,6 +54,11 @@ RUN cd apps/block_scout_web/assets/ && \
     npm run deploy && \
     cd -
 
+# Arbitrum: prepare arbitrary abi-installation
+RUN cd init/ && \
+    npm install && \
+    cd -
+
 RUN cd apps/explorer/ && \
     npm install && \
     apk update && apk del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3
