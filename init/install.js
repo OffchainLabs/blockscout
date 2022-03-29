@@ -2,23 +2,28 @@
 const fs = require('fs')
 const ethers = require('ethers')
 
+const host = process.argv[2] || 'localhost';
+const port = process.argv[3] || 7432;
+
 const { Client } = require('pg')
 const client = new Client({
     user: 'postgres',
-    host: 'localhost',
+    host: host,
     database: 'blockscout',
-    port: 7432,
+    port: port,
 })
 
 console.log("Updating Postgres tables for L2 Arbitrum");
+
+const datadir = __dirname + '/data/';
 
 (async () => {
     await client.connect()
 
     const install = async (address, name, version) => {
         console.log("Installing", name, 'at', address);
-        let abi = JSON.parse(fs.readFileSync('data/' + name + '.abi'));
-        let desc = fs.readFileSync('data/' + name + '.txt').toString().replaceAll('\n', '\n\r');
+        let abi = JSON.parse(fs.readFileSync(datadir + name + '.abi'));
+        let desc = fs.readFileSync(datadir + name + '.txt').toString().replace(/\n/g, '\n\r');
         let code = Buffer.from('fe', 'hex');
         let addr = Buffer.from(address, 'hex');
 
