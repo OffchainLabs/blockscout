@@ -447,7 +447,7 @@ end %>
                 text: gettext("Fee paid to the L1 aggregator for posting this transaction (contributes to L2 Gas Used).") %>
               <%= gettext "Poster Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.gas_for_l1_cost), :ether) %> </dd>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
           </dl>
 
           <!-- Nonce, Index in Block -->
