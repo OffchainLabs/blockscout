@@ -123,7 +123,7 @@ defmodule EthereumJSONRPC.Receipt do
         %{
           "cumulativeGasUsed" => cumulative_gas_used,
           "gasUsed" => gas_used,
-          "l1GasUsed" => l1_gas_used,
+          "gasForL1Cost" => gas_for_l1_cost,
           "contractAddress" => created_contract_address_hash,
           "transactionHash" => transaction_hash,
           "transactionIndex" => transaction_index
@@ -134,7 +134,7 @@ defmodule EthereumJSONRPC.Receipt do
     %{
       cumulative_gas_used: cumulative_gas_used,
       gas_used: gas_used,
-      l1_gas_used: l1_gas_used,
+      gas_for_l1_cost: gas_for_l1_cost,
       created_contract_address_hash: created_contract_address_hash,
       status: status,
       transaction_hash: transaction_hash,
@@ -259,7 +259,7 @@ defmodule EthereumJSONRPC.Receipt do
        do: {:ok, entry}
 
   defp entry_to_elixir({key, quantity})
-       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex l1GasUsed) do
+       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex gasForL1Cost) do
     result =
       if is_nil(quantity) do
         nil
