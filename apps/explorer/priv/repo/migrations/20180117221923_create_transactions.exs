@@ -14,7 +14,7 @@ defmodule Explorer.Repo.Migrations.CreateTransactions do
 
       # `null` when a pending transaction
       add(:gas_used, :numeric, precision: 100, null: true)
-      add(:gas_for_l1_cost, :numeric, precision: 100, null: false)
+      add(:gas_used_for_l1, :numeric, precision: 100, null: false)
 
       add(:hash, :bytea, null: false, primary_key: true)
 

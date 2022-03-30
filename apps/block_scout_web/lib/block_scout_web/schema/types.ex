@@ -134,7 +134,7 @@ defmodule BlockScoutWeb.Schema.Types do
     field(:gas, :decimal)
     field(:gas_price, :wei)
     field(:gas_used, :decimal)
-    field(:gas_for_l1_cost, :decimal)
+    field(:gas_used_for_l1, :decimal)
     field(:index, :integer)
     field(:input, :string)
     field(:nonce, :nonce_hash)
