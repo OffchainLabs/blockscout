@@ -17,17 +17,6 @@ end %>
 <% base_fee_per_gas = if block, do: block.base_fee_per_gas, else: nil %>
 <% max_priority_fee_per_gas = @transaction.max_priority_fee_per_gas %>
 <% max_fee_per_gas = @transaction.max_fee_per_gas %>
-<% burned_fee = 
-  if !is_nil(max_fee_per_gas) and !is_nil(@transaction.gas_used) and !is_nil(base_fee_per_gas) do
-    if Decimal.cmp(max_fee_per_gas.value, 0) == :eq do
-      %Wei{value: Decimal.new(0)}
-    else
-      Wei.mult(base_fee_per_gas, @transaction.gas_used)
-    end
-  else
-    nil
-  end %>
-<% %Wei{value: burned_fee_decimal} = if is_nil(burned_fee), do: %Wei{value: Decimal.new(0)}, else: burned_fee %>
 <% priority_fee_per_gas = if is_nil(max_priority_fee_per_gas) or is_nil(base_fee_per_gas), do: nil, else: Enum.min_by([max_priority_fee_per_gas, Wei.sub(max_fee_per_gas, base_fee_per_gas)], fn x -> Wei.to(x, :wei) end) %>
 <% priority_fee = if is_nil(priority_fee_per_gas), do: nil, else: Wei.mult(priority_fee_per_gas, @transaction.gas_used) %>
 <% decoded_input_data = decoded_input_data(@transaction) %>
@@ -186,14 +175,6 @@ end %>
                 <span>
                   <span data-from-now="<%= block.timestamp %>"></span>
                 </span>
-                <%= case processing_time_duration(@transaction) do %>
-                  <% :pending -> %>
-                    <% nil %>
-                  <% :unknown -> %>
-                    <% nil %>
-                  <% {:ok, interval_string} -> %>
-                    | <%= gettext("Confirmed within") %> <%= interval_string %>
-                <% end %>
               </dd>
             </dl>
           <% end %>
@@ -341,6 +322,7 @@ end %>
             <% end %>
             </dd>
           </dl>
+
           <!-- Transaction Fee -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
@@ -356,6 +338,27 @@ end %>
               <% end %>
             </dd>
           </dl>
+
+          <!-- Poster Fee -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("Fee paid to the L1 aggregator for posting this transaction.") %>
+              <%= gettext "Poster Fee" %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
+          </dl>
+
+          <!-- Network Fee -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("Fee paid to the network for L2 resources.") %>
+              <%= gettext "Network Fee" %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)), :ether) %> </dd>
+          </dl>
+
           <!-- Gas Price -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
@@ -385,6 +388,43 @@ end %>
             </dt>
             <dd class="col-sm-9 col-lg-10"> <%= format_gas_limit(@transaction.gas) %> </dd>
           </dl>
+
+          <!-- L2 Gas Used by Transaction -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted transaction-gas-used">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("Actual L2 gas amount used by the transaction.") %>
+              <%= gettext "Gas Used" %>
+            </dt>
+            <% gas_used_perc = gas_used_perc(@transaction) %>
+            <dd class="col-sm-9 col-lg-10"> <%= gas_used(@transaction) %> <%= if gas_used_perc, do: "| #{gas_used_perc}%" %></dd>
+          </dl>
+
+          <!-- L2 Gas Used For L1 -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted transaction-gas-used">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("L2 gas set aside for L1 data charges.") %>
+              <%= gettext "Gas Used For L1" %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10">
+              <%= format_gas_limit(@transaction.gas_used_for_l1) %>
+              <%= "| " <> Decimal.to_string(Decimal.round(Decimal.div(Decimal.mult(100, @transaction.gas_used_for_l1), @transaction.gas_used), 2)) <> "%" %></dd>
+          </dl>
+
+          <!-- L2 Gas Used For L2 -->
+          <dl class="row">
+            <dt class="col-sm-3 col-lg-2 text-muted transaction-gas-used">
+              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                text: gettext("L2 gas spent on L2 resources.") %>
+              <%= gettext "Gas Used For L2" %>
+            </dt>
+            <dd class="col-sm-9 col-lg-10">
+              <%= format_gas_limit(Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)) %>
+              <%= "| " <> Decimal.to_string(Decimal.round(Decimal.div(Decimal.mult(100, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)), @transaction.gas_used), 2)) <> "%" %></dd>
+            </dd>
+          </dl>
+
           <%= if !is_nil(max_fee_per_gas) do %>
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
@@ -395,6 +435,7 @@ end %>
               <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(max_fee_per_gas, :gwei) %> </dd>
             </dl>
           <% end %>
+
           <%= if !is_nil(max_priority_fee_per_gas) do %>
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
@@ -405,50 +446,17 @@ end %>
               <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(max_priority_fee_per_gas, :gwei) %> </dd>
             </dl>
           <% end %>
+
           <%= if !is_nil(priority_fee) do %>
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
                 <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                  text: gettext("User-defined tip sent to validator for transaction priority/inclusion.") %>
+                  text: gettext("User-defined tip sent to aggregator for transaction priority/inclusion. Because the sequencer is first-come first-served, those using it should set a tip of 0.") %>
                 <%= gettext "Priority Fee / Tip" %>
               </dt>
               <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(priority_fee, :ether) %> </dd>
             </dl>
-          <% end %> 
-           <%= if !is_nil(burned_fee) do %>
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                  text: gettext("Amount of") <> " " <> gettext("Ether") <> " " <> gettext("burned for this transaction. Equals Block Base Fee per Gas * Gas Used.") %>
-                <%= gettext "Transaction Burnt Fee" %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"><i class="fa-solid fa-fire i-tooltip-2"></i> <%= format_wei_value(burned_fee, :ether) %>
-                <%= unless empty_exchange_rate?(@exchange_rate) do %>
-                  (<span data-wei-value=<%= burned_fee_decimal %> data-usd-exchange-rate=<%= @exchange_rate.usd_value %>></span>)
-                <% end %>
-              </dd>
-            </dl>
           <% end %>
-          <!-- L2 Gas Used by Transaction -->
-          <dl class="row">
-            <dt class="col-sm-3 col-lg-2 text-muted transaction-gas-used">
-              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Actual L2 gas amount used by the transaction.") %>
-              <%= gettext "L2 Gas Used" %>
-            </dt>
-            <% gas_used_perc = gas_used_perc(@transaction) %>
-            <dd class="col-sm-9 col-lg-10"> <%= gas_used(@transaction) %> <%= if gas_used_perc, do: "| #{gas_used_perc}%" %></dd>
-          </dl>
-
-          <!-- Poster Fee -->
-          <dl class="row">
-            <dt class="col-sm-3 col-lg-2 text-muted">
-              <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Fee paid to the L1 aggregator for posting this transaction (contributes to L2 Gas Used).") %>
-              <%= gettext "Poster Fee" %>
-            </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
-          </dl>
 
           <!-- Nonce, Index in Block -->
           <dl class="row">
