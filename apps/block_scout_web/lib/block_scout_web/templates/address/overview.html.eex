@@ -72,6 +72,8 @@
  "000000000000000000000000000000000000006e" -> "ArbRetryableTx Precompile Contract (0x000000006e)"
  "000000000000000000000000000000000000006f" -> "ArbStatistics Precompile Contract (0x000000006f)"
  "0000000000000000000000000000000000000070" -> "ArbOwner Precompile Contract (0x0000000070)"
+ "00000000000000000000000000000000000000c8" -> "NodeInterface virtual RPC (0x00000000c8)"
+ "00000000000000000000000000000000000000c9" -> "NodeInterfaceDebug virtual RPC (0x00000000c9)"
  "00000000000000000000000000000000000000ff" -> "ArbDebug Precompile Contract (0x00000000ff)"
  _ -> "0x" <> Base.encode16(@address.hash.bytes, case: :lower)
           end %></h3>
