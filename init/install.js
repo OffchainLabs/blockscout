@@ -94,6 +94,8 @@ const datadir = __dirname + '/data/';
     await install('000000000000000000000000000000000000006e', 'ArbRetryableTx', 'L2 Precompile (go 1.17)')
     await install('000000000000000000000000000000000000006f', 'ArbStatistics', 'L2 Precompile (go 1.17)')
     await install('0000000000000000000000000000000000000070', 'ArbOwner', 'L2 Precompile (go 1.17)')
+    await install('00000000000000000000000000000000000000c8', 'NodeInterface', 'Not installed')
+    await install('00000000000000000000000000000000000000c9', 'NodeInterfaceDebug', 'Not installed')
     await install('00000000000000000000000000000000000000ff', 'ArbDebug', 'L2 Precompile (go 1.17)')
 
     await client.end()
