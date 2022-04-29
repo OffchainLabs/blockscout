@@ -14,11 +14,7 @@
    120 -> "Arbitrum Legacy Transaction (120)"
    _ -> @transaction.type
 end %>
-<% base_fee_per_gas = if block, do: block.base_fee_per_gas, else: nil %>
-<% max_priority_fee_per_gas = @transaction.max_priority_fee_per_gas %>
 <% max_fee_per_gas = @transaction.max_fee_per_gas %>
-<% priority_fee_per_gas = if is_nil(max_priority_fee_per_gas) or is_nil(base_fee_per_gas), do: nil, else: Enum.min_by([max_priority_fee_per_gas, Wei.sub(max_fee_per_gas, base_fee_per_gas)], fn x -> Wei.to(x, :wei) end) %>
-<% priority_fee = if is_nil(priority_fee_per_gas), do: nil, else: Wei.mult(priority_fee_per_gas, @transaction.gas_used) %>
 <% decoded_input_data = decoded_input_data(@transaction) %>
 <% status = transaction_status(@transaction) %>
 <% circles_addresses_list = CustomContractsHelpers.get_custom_addresses_list(:circles_addresses) %>
@@ -368,6 +364,16 @@ end %>
             </dt>
             <dd class="col-sm-9 col-lg-10"> <%= gas_price(@transaction, :gwei) %> </dd>
           </dl>
+          <%= if !is_nil(max_fee_per_gas) do %>
+            <dl class="row">
+              <dt class="col-sm-3 col-lg-2 text-muted">
+                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
+                  text: gettext("Maximum amount per unit of gas a user is willing to pay for a transaction.") %>
+                <%= gettext "Max Fee per Gas" %>
+              </dt>
+              <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(max_fee_per_gas, :gwei) %> </dd>
+            </dl>
+          <% end %>
           <%= if !is_nil(type) do %>
             <dl class="row">
               <dt class="col-sm-3 col-lg-2 text-muted">
@@ -434,39 +440,6 @@ end %>
                 else: " " %>
             </dd>
           </dl>
-
-          <%= if !is_nil(max_fee_per_gas) do %>
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                  text: gettext("Maximum total amount per unit of gas a user is willing to pay for a transaction, including base fee and priority fee.") %>
-                <%= gettext "Max Fee per Gas" %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(max_fee_per_gas, :gwei) %> </dd>
-            </dl>
-          <% end %>
-
-          <%= if !is_nil(max_priority_fee_per_gas) do %>
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                  text: gettext("User defined maximum fee (tip) per unit of gas paid to validator for transaction prioritization.") %>
-                <%= gettext "Max Priority Fee per Gas" %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(max_priority_fee_per_gas, :gwei) %> </dd>
-            </dl>
-          <% end %>
-
-          <%= if !is_nil(priority_fee) do %>
-            <dl class="row">
-              <dt class="col-sm-3 col-lg-2 text-muted">
-                <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                  text: gettext("User-defined tip sent to aggregator for transaction priority/inclusion. Because the sequencer is first-come first-served, those using it should set a tip of 0.") %>
-                <%= gettext "Priority Fee / Tip" %>
-              </dt>
-              <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(priority_fee, :ether) %> </dd>
-            </dl>
-          <% end %>
 
           <!-- Nonce, Index in Block -->
           <dl class="row">
