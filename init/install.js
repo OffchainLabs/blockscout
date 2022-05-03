@@ -20,12 +20,12 @@ const datadir = __dirname + '/data/';
 (async () => {
     await client.connect()
 
-    const install = async (address, name, version) => {
-        console.log("Installing", name, 'at', address);
-        let abi = JSON.parse(fs.readFileSync(datadir + name + '.abi'));
-        let desc = fs.readFileSync(datadir + name + '.txt').toString().replace(/\n/g, '\n\r');
+    const install = async (address, file, name, version) => {
+        console.log("Installing", name, 'at', '0x' + address);
+        let abi = JSON.parse(fs.readFileSync(datadir + file + '.abi'));
+        let desc = fs.readFileSync(datadir + file + '.txt').toString().replace(/\n/g, '\n\r');
         let code = Buffer.from('fe', 'hex');
-        let addr = Buffer.from(address, 'hex');
+        let addr = Buffer.from('00000000000000000000000000000000000' + address, 'hex');
 
         await client.query(
             `INSERT INTO addresses (hash, contract_code, verified, inserted_at, updated_at)
@@ -80,23 +80,23 @@ const datadir = __dirname + '/data/';
             [addr],
         );
     }
-    
-    await install('00000000000000000000000000000000000a4b05', 'ArbOS', 'EVM Hypervisor (go 1.17)')
-    await install('0000000000000000000000000000000000000064', 'ArbSys', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000065', 'ArbInfo', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000066', 'ArbAddressTable', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000067', 'ArbBLS', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000068', 'ArbFunctionTable', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000069', 'ArbosTest', 'L2 Precompile (go 1.17)')
-    await install('000000000000000000000000000000000000006b', 'ArbOwnerPublic', 'L2 Precompile (go 1.17)')
-    await install('000000000000000000000000000000000000006c', 'ArbGasInfo', 'L2 Precompile (go 1.17)')
-    await install('000000000000000000000000000000000000006d', 'ArbAggregator', 'L2 Precompile (go 1.17)')
-    await install('000000000000000000000000000000000000006e', 'ArbRetryableTx', 'L2 Precompile (go 1.17)')
-    await install('000000000000000000000000000000000000006f', 'ArbStatistics', 'L2 Precompile (go 1.17)')
-    await install('0000000000000000000000000000000000000070', 'ArbOwner', 'L2 Precompile (go 1.17)')
-    await install('00000000000000000000000000000000000000c8', 'NodeInterface', 'Not installed')
-    await install('00000000000000000000000000000000000000c9', 'NodeInterfaceDebug', 'Not installed')
-    await install('00000000000000000000000000000000000000ff', 'ArbDebug', 'L2 Precompile (go 1.17)')
+
+    await install('a4b05', 'ArbosActs'         , 'ArbOS'             , 'EVM Hypervisor (go 1.17)')
+    await install('00064', 'ArbSys'            , 'ArbSys'            , 'L2 Precompile (go 1.17)')
+    await install('00065', 'ArbInfo'           , 'ArbInfo'           , 'L2 Precompile (go 1.17)')
+    await install('00066', 'ArbAddressTable'   , 'ArbAddressTable'   , 'L2 Precompile (go 1.17)')
+    await install('00067', 'ArbBLS'            , 'ArbBLS'            , 'L2 Precompile (go 1.17)')
+    await install('00068', 'ArbFunctionTable'  , 'ArbFunctionTable'  , 'L2 Precompile (go 1.17)')
+    await install('00069', 'ArbosTest'         , 'ArbosTest'         , 'L2 Precompile (go 1.17)')
+    await install('0006b', 'ArbOwnerPublic'    , 'ArbOwnerPublic'    , 'L2 Precompile (go 1.17)')
+    await install('0006c', 'ArbGasInfo'        , 'ArbGasInfo'        , 'L2 Precompile (go 1.17)')
+    await install('0006d', 'ArbAggregator'     , 'ArbAggregator'     , 'L2 Precompile (go 1.17)')
+    await install('0006e', 'ArbRetryableTx'    , 'ArbRetryableTx'    , 'L2 Precompile (go 1.17)')
+    await install('0006f', 'ArbStatistics'     , 'ArbStatistics'     , 'L2 Precompile (go 1.17)')
+    await install('00070', 'ArbOwner'          , 'ArbOwner'          , 'L2 Precompile (go 1.17)')
+    await install('000c8', 'NodeInterface'     , 'NodeInterface'     , 'Not installed')
+    await install('000c9', 'NodeInterfaceDebug', 'NodeInterfaceDebug', 'Not installed')
+    await install('000ff', 'ArbDebug'          , 'ArbDebug'          , 'L2 Precompile (go 1.17)')
 
     await client.end()
 })();
