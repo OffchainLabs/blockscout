@@ -19,7 +19,7 @@ $tile-body-a-color: #5959d8 !default;
 
 @mixin generate-tile-block($prefix, $color, $label-color: false) {
   &#{ $prefix } {
-    border-left: 4px solid $color;
+    border-left: 4px solid $color !important;
 
     .tile-transaction-type-block {
       a {
@@ -245,6 +245,10 @@ $tile-body-a-color: #5959d8 !default;
   @include generate-tile-block(
     ".tile-type-internal-transaction",
     $tile-type-internal-transaction-color
+  );
+  @include generate-tile-block(
+    ".tile-type-internal-transaction-outside",
+    $cyan
   );
   @include generate-tile-block(
     ".tile-type-api-documentation",

@@ -4,7 +4,7 @@ defmodule Explorer.Chain.InternalTransaction do
   use Explorer.Schema
 
   alias Explorer.Chain.{Address, Block, Data, Gas, Hash, PendingBlockOperation, Transaction, Wei}
-  alias Explorer.Chain.InternalTransaction.{Action, CallType, Result, Type}
+  alias Explorer.Chain.InternalTransaction.{Action, CallType, Purpose, Result, Type}
 
   @typedoc """
    * `block_number` - the `t:Explorer.Chain.Block.t/0` `number` that the `transaction` is collated into.
@@ -36,6 +36,7 @@ defmodule Explorer.Chain.InternalTransaction do
           block_number: Explorer.Chain.Block.block_number() | nil,
           type: Type.t(),
           call_type: CallType.t() | nil,
+          purpose: Purpose.t() | nil,
           created_contract_address: %Ecto.Association.NotLoaded{} | Address.t() | nil,
           created_contract_address_hash: Hash.t() | nil,
           created_contract_code: Data.t() | nil,
@@ -62,6 +63,7 @@ defmodule Explorer.Chain.InternalTransaction do
   @primary_key false
   schema "internal_transactions" do
     field(:call_type, CallType)
+    field(:purpose, Purpose)
     field(:created_contract_code, Data)
     field(:error, :string)
     field(:gas, :decimal)
@@ -630,6 +632,7 @@ defmodule Explorer.Chain.InternalTransaction do
   defp internal_transaction_to_raw(%{type: :call} = transaction) do
     %{
       call_type: call_type,
+      purpose: purpose,
       to_address_hash: to_address_hash,
       from_address_hash: from_address_hash,
       input: input,
@@ -640,6 +643,7 @@ defmodule Explorer.Chain.InternalTransaction do
 
     action = %{
       "callType" => call_type,
+      "purpose" => purpose,
       "to" => to_address_hash,
       "from" => from_address_hash,
       "input" => input,

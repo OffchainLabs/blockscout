@@ -105,6 +105,22 @@ defmodule BlockScoutWeb.Schema.Scalars do
     value(:callcode)
     value(:delegatecall)
     value(:staticcall)
+    value(:beforetransfer)
+    value(:aftertransfer)
+    value(:beforemint)
+    value(:aftermint)
+    value(:beforeburn)
+    value(:afterburn)
+  end
+
+  enum :purpose do
+    value(:fee_collection)
+    value(:fee_payment)
+    value(:deposit)
+    value(:escrow)
+    value(:prepaid)
+    value(:refund)
+    value(:l1_send)
   end
 
   enum :type do

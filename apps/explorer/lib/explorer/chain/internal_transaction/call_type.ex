@@ -13,7 +13,7 @@ defmodule Explorer.Chain.InternalTransaction.CallType do
      when fuzzing these if the memory layout differs between the current contract and the delegated contract.
    * `:staticcall`
   """
-  @type t :: :call | :callcode | :delegatecall | :staticcall
+  @type t :: :call | :callcode | :delegatecall | :staticcall | :beforetransfer | :aftertransfer | :beforemint | :aftermint | :beforeburn | :afterburn
 
   @doc """
   Casts `term` to `t:t/0`
@@ -48,11 +48,17 @@ defmodule Explorer.Chain.InternalTransaction.CallType do
   """
   @impl Ecto.Type
   @spec cast(term()) :: {:ok, t()} | :error
-  def cast(t) when t in ~w(call callcode delegatecall staticcall)a, do: {:ok, t}
+  def cast(t) when t in ~w(call callcode delegatecall staticcall beforetransfer aftertransfer beforemint aftermint beforeburn afterburn)a, do: {:ok, t}
   def cast("call"), do: {:ok, :call}
   def cast("callcode"), do: {:ok, :callcode}
   def cast("delegatecall"), do: {:ok, :delegatecall}
   def cast("staticcall"), do: {:ok, :staticcall}
+  def cast("beforetransfer"), do: {:ok, :beforetransfer}
+  def cast("aftertransfer"), do: {:ok, :aftertransfer}
+  def cast("beforemint"), do: {:ok, :beforemint}
+  def cast("aftermint"), do: {:ok, :aftermint}
+  def cast("beforeburn"), do: {:ok, :beforeburn}
+  def cast("afterburn"), do: {:ok, :afterburn}
   def cast(_), do: :error
 
   @doc """
@@ -79,6 +85,13 @@ defmodule Explorer.Chain.InternalTransaction.CallType do
   def dump(:callcode), do: {:ok, "callcode"}
   def dump(:delegatecall), do: {:ok, "delegatecall"}
   def dump(:staticcall), do: {:ok, "staticcall"}
+  def dump(:beforetransfer), do: {:ok, "beforetransfer"}
+  def dump(:aftertransfer), do: {:ok, "aftertransfer"}
+  def dump(:beforemint), do: {:ok, "beforemint"}
+  def dump(:aftermint), do: {:ok, "aftermint"}
+  def dump(:beforeburn), do: {:ok, "beforeburn"}
+  def dump(:afterburn), do: {:ok, "afterburn"}
+  
   def dump(_), do: :error
 
   @doc """
@@ -105,6 +118,12 @@ defmodule Explorer.Chain.InternalTransaction.CallType do
   def load("callcode"), do: {:ok, :callcode}
   def load("delegatecall"), do: {:ok, :delegatecall}
   def load("staticcall"), do: {:ok, :staticcall}
+  def load("beforetransfer"), do: {:ok, :beforetransfer}
+  def load("aftertransfer"), do: {:ok, :aftertransfer}
+  def load("beforemint"), do: {:ok, :beforemint}
+  def load("aftermint"), do: {:ok, :aftermint}
+  def load("beforeburn"), do: {:ok, :beforeburn}
+  def load("afterburn"), do: {:ok, :afterburn}
   def load(_), do: :error
 
   @doc """

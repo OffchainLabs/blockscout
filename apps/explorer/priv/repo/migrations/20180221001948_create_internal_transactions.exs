@@ -4,6 +4,7 @@ defmodule Explorer.Repo.Migrations.CreateInternalTransactions do
   def change do
     create table(:internal_transactions) do
       add(:call_type, :string, null: true)
+      add(:purpose, :string, null: true)
       add(:created_contract_code, :bytea, null: true)
       # null unless there is an error
       add(:error, :string, null: true)

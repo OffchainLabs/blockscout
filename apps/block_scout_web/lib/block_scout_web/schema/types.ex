@@ -73,6 +73,7 @@ defmodule BlockScoutWeb.Schema.Types do
   """
   node object(:internal_transaction, id_fetcher: &internal_transaction_id_fetcher/2) do
     field(:call_type, :call_type)
+    field(:purpose, :purpose)
     field(:created_contract_code, :data)
     field(:error, :string)
     field(:gas, :decimal)

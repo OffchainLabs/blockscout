@@ -2,6 +2,8 @@
 {
     // The call stack of the EVM execution.
     callStack: [{}],
+    transfersBeforeEVMExecution: [],
+    transfersAfterEVMExecution: [],
 
     // step is invoked for every opcode that the VM executes.
     step(log, db) {
@@ -242,13 +244,60 @@
         this.topCall().error = 'execution reverted';
     },
 
+    captureArbitrumTransfer(transfer) {
+        const before = transfer.before;
+        var from = "0x0000000000000000000000000000000000000000";
+        var to = "0x0000000000000000000000000000000000000000";
+        var kind = "";
+
+        if (transfer.from) {
+            from = transfer.from.toLowerCase();
+            kind = "burn";
+        }
+        if (transfer.to) {
+            to = transfer.to.toLowerCase();
+            kind = "mint";
+        }
+        if (transfer.from && transfer.to) {
+            kind = "transfer";
+        }
+
+        //const purposes = ["feeCollection", "feePayment", "deposit", "escrow", "prepaid", "refund", "l1Send"];
+        //var purpose = purposes[transfer.purpose];
+        
+
+        const call = {
+            type: "call",
+            callType: (before ? "before" : "after") + kind,
+            purpose: transfer.purpose,
+            from: from,
+            to: to,
+            input: "0x",
+            output: "0x",
+            traceAddress: [],
+            value: "0x" + transfer.value.toString(16),
+            gas: "0x0",
+            gasUsed: "0x0",
+        };
+
+        if (before) {
+            this.transfersBeforeEVMExecution.push(call);
+        } else {
+            this.transfersAfterEVMExecution.push(call);
+        }
+    },
+
     // result is invoked when all the opcodes have been iterated over and returns
     // the final result of the tracing.
     result(ctx, db) {
         const result = this.ctxToResult(ctx, db);
         const filtered = this.filterNotUndefined(result);
         const callSequence = this.sequence(filtered, [], filtered.valueBigInt, []).callSequence;
-        return this.encodeCallSequence(callSequence);
+        const evmCalls = this.encodeCallSequence(callSequence);
+        const beforeCalls = this.transfersBeforeEVMExecution;
+        const afterCalls = this.transfersAfterEVMExecution;
+        const calls = beforeCalls.concat(evmCalls).concat(afterCalls);
+        return calls;
     },
 
     ctxToResult(ctx, db) {
@@ -430,6 +479,7 @@
         this.putValue(call);
         this.putGas(call);
         this.putGasUsed(call);
+        call.purpose = "general";
 
         return call;
     },
