@@ -300,7 +300,7 @@ defmodule EthereumJSONRPC.Geth.Call do
   end
 
   defp entry_to_elixir({key, value} = entry)
-       when key in ~w(callType createdContractAddressHash createdContractCode error from init input output to transactionHash type) and
+       when key in ~w(callType createdContractAddressHash createdContractCode error from init input output to transactionHash type purpose) and
               is_binary(value),
        do: entry
 
@@ -325,6 +325,7 @@ defmodule EthereumJSONRPC.Geth.Call do
          "traceAddress" => trace_address,
          "type" => "call" = type,
          "callType" => call_type,
+         "purpose" => purpose,
          "from" => from_address_hash,
          "to" => to_address_hash,
          "gas" => gas,
@@ -332,7 +333,7 @@ defmodule EthereumJSONRPC.Geth.Call do
          "error" => error,
          "value" => value
        })
-       when call_type in ~w(call callcode delegatecall) do
+       when call_type in ~w(call callcode delegatecall beforetransfer aftertransfer beforemint aftermint beforeburn afterburn) do
     %{
       block_number: block_number,
       transaction_index: transaction_index,
@@ -341,6 +342,7 @@ defmodule EthereumJSONRPC.Geth.Call do
       trace_address: trace_address,
       type: type,
       call_type: call_type,
+      purpose: purpose,
       from_address_hash: from_address_hash,
       to_address_hash: to_address_hash,
       gas: gas,
@@ -358,6 +360,7 @@ defmodule EthereumJSONRPC.Geth.Call do
          "traceAddress" => trace_address,
          "type" => "call" = type,
          "callType" => call_type,
+         "purpose" => purpose,
          "from" => from_address_hash,
          "to" => to_address_hash,
          "gas" => gas,
@@ -366,7 +369,7 @@ defmodule EthereumJSONRPC.Geth.Call do
          "output" => output,
          "value" => value
        })
-       when call_type in ~w(call callcode delegatecall) do
+       when call_type in ~w(call callcode delegatecall beforetransfer aftertransfer beforemint aftermint beforeburn afterburn) do
     %{
       block_number: block_number,
       transaction_index: transaction_index,
@@ -375,6 +378,7 @@ defmodule EthereumJSONRPC.Geth.Call do
       trace_address: trace_address,
       type: type,
       call_type: call_type,
+      purpose: purpose,
       from_address_hash: from_address_hash,
       to_address_hash: to_address_hash,
       gas: gas,
@@ -394,6 +398,7 @@ defmodule EthereumJSONRPC.Geth.Call do
            "traceAddress" => trace_address,
            "type" => "call" = type,
            "callType" => "staticcall" = call_type,
+           "purpose" => purpose,
            "from" => from_address_hash,
            "to" => to_address_hash,
            "input" => input,
@@ -410,6 +415,7 @@ defmodule EthereumJSONRPC.Geth.Call do
       trace_address: trace_address,
       type: type,
       call_type: call_type,
+      purpose: purpose,
       from_address_hash: from_address_hash,
       to_address_hash: to_address_hash,
       gas: gas,

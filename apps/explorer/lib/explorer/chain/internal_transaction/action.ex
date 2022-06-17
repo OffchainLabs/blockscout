@@ -22,6 +22,10 @@ defmodule Explorer.Chain.InternalTransaction.Action do
     {"callType", Atom.to_string(type)}
   end
 
+  defp entry_to_raw({"purpose", type}) do
+    {"purpose", Atom.to_string(type)}
+  end
+
   defp entry_to_raw({"gas" = key, %Decimal{} = decimal}) do
     value =
       decimal

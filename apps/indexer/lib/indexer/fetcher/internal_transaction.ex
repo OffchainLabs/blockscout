@@ -126,9 +126,11 @@ defmodule Indexer.Fetcher.InternalTransaction do
         import_internal_transaction(internal_transactions_params, unique_numbers)
 
       {:error, reason} ->
-        Logger.error(fn -> ["failed to fetch internal transactions for blocks: ", inspect(reason)] end,
+        Logger.error(fn -> ["failed to fetch internal transactions for blocks: ", inspect(reason), "\n", inspect(block_numbers)] end,
           error_count: unique_numbers_count
         )
+
+        :timer.sleep(:timer.seconds(1))
 
         # re-queue the de-duped entries
         {:retry, unique_numbers}
@@ -236,6 +238,8 @@ defmodule Indexer.Fetcher.InternalTransaction do
           step: step,
           error_count: Enum.count(unique_numbers)
         )
+
+        :timer.sleep(:timer.seconds(1))
 
         # re-queue the de-duped entries
         {:retry, unique_numbers}
