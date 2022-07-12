@@ -342,7 +342,7 @@ end %>
                 text: gettext("Fee paid to the L1 aggregator for posting this transaction.") %>
               <%= gettext "Poster Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.effective_gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
           </dl>
 
           <!-- Network Fee -->
@@ -352,17 +352,17 @@ end %>
                 text: gettext("Fee paid to the network for L2 resources.") %>
               <%= gettext "Network Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.gas_price, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)), :ether) %> </dd>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.effective_gas_price, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)), :ether) %> </dd>
           </dl>
 
           <!-- Gas Price -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Price per unit of gas specified by the sender. Higher gas prices can prioritize transaction inclusion during times of high usage.") %>
+                text: gettext("Price per unit of gas specified by the sender.") %>
               <%= gettext "Gas Price" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= gas_price(@transaction, :gwei) %> </dd>
+            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(@transaction.effective_gas_price, :gwei) %> </dd>
           </dl>
           <%= if !is_nil(max_fee_per_gas) do %>
             <dl class="row">
