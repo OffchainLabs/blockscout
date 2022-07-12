@@ -57,6 +57,7 @@ defmodule EthereumJSONRPC.Transaction do
           gas: non_neg_integer(),
           gas_used_for_l1: non_neg_integer(),
           gas_price: non_neg_integer(),
+          effective_gas_price: non_neg_integer(),
           hash: EthereumJSONRPC.hash(),
           index: non_neg_integer(),
           input: String.t(),
