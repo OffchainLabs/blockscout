@@ -60,7 +60,9 @@ RUN cd init/ && \
     cd -
 
 RUN cd apps/explorer/ && \
-    npm install && \
-    apk update && apk del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3
+    npm install
+
+RUN apk --update del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 \
+    || echo failed removing apks
 
 RUN mix phx.digest
