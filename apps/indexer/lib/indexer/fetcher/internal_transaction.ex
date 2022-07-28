@@ -21,7 +21,7 @@ defmodule Indexer.Fetcher.InternalTransaction do
 
   @behaviour BufferedTask
 
-  @max_batch_size 10
+  @max_batch_size 100
   @max_concurrency 4
   @defaults [
     flush_interval: :timer.seconds(3),
@@ -102,7 +102,7 @@ defmodule Indexer.Fetcher.InternalTransaction do
     unique_numbers_count = Enum.count(unique_numbers)
     Logger.metadata(count: unique_numbers_count)
 
-    Logger.debug("fetching internal transactions for blocks")
+    Logger.debug("fetching internal transactions for blocks" <> inspect(unique_numbers))
 
     json_rpc_named_arguments
     |> Keyword.fetch!(:variant)
@@ -126,12 +126,27 @@ defmodule Indexer.Fetcher.InternalTransaction do
         import_internal_transaction(internal_transactions_params, unique_numbers)
 
       {:error, reason} ->
-        Logger.error(fn -> ["failed to fetch internal transactions for blocks: ", inspect(reason)] end,
-          error_count: unique_numbers_count
-        )
 
-        # re-queue the de-duped entries
-        {:retry, unique_numbers}
+        message = Enum.at(reason, 0).message
+        classic = inspect(String.contains?(inspect(message), "missing trie node"))
+
+        if classic do
+          Logger.error(fn -> ["skipping classic blocks: ", inspect(unique_numbers)] end, error_count: 1)
+          #import_internal_transaction([], unique_numbers)
+          :ok
+        else
+          Logger.error(fn -> [
+            "failed to fetch internal transactions for blocks:",
+            "\n    message: ", message,
+            "\n    classic: ", classic,
+            "\n    reason:  ", inspect(reason)
+          ] end,
+            error_count: unique_numbers_count
+          )
+
+          # re-queue the de-duped entries
+          {:retry, unique_numbers}
+        end
 
       :ignore ->
         :ok

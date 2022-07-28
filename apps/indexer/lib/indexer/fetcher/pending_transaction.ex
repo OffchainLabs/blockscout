@@ -173,7 +173,7 @@ defmodule Indexer.Fetcher.PendingTransaction do
         :ok
 
       {:error, reason} ->
-        Logger.error(fn -> inspect(reason) end, step: :import)
+        Logger.error(fn -> ["Failed to import (2): ", inspect(reason)] end, step: :import)
 
       {:error, step, failed_value, _changes_so_far} ->
         Logger.error(fn -> ["Failed to import: ", inspect(failed_value)] end, step: step)
