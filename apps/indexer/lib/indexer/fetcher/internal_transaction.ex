@@ -131,8 +131,7 @@ defmodule Indexer.Fetcher.InternalTransaction do
         classic = inspect(String.contains?(inspect(message), "missing trie node"))
 
         if classic do
-          Logger.error(fn -> ["skipping classic blocks: ", inspect(unique_numbers)] end, error_count: 1)
-          #import_internal_transaction([], unique_numbers)
+          #Logger.error(fn -> ["skipping classic blocks: ", inspect(unique_numbers)] end, error_count: 1)
           :ok
         else
           Logger.error(fn -> [
