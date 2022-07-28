@@ -397,6 +397,55 @@ defmodule EthereumJSONRPC.Block do
     }
   end
 
+  # Arbitrum Classic
+  def elixir_to_params(
+        %{
+          "difficulty" => difficulty,
+          "extraData" => extra_data,
+          "gasLimit" => gas_limit,
+          "gasUsed" => gas_used,
+          "hash" => hash,
+          "logsBloom" => logs_bloom,
+          "miner" => miner_hash,
+          "number" => number,
+          "parentHash" => parent_hash,
+          "receiptsRoot" => receipts_root,
+          "sha3Uncles" => sha3_uncles,
+          "size" => size,
+          "stateRoot" => state_root,
+          "timestamp" => timestamp,
+          "totalDifficulty" => total_difficulty,
+          "transactionsRoot" => transactions_root,
+          "uncles" => uncles,
+        } = elixir
+      ) do
+    %{
+      difficulty: difficulty,
+      extra_data: extra_data,
+      gas_limit: gas_limit,
+      gas_used: gas_used,
+      hash: hash,
+      logs_bloom: logs_bloom,
+      miner_hash: miner_hash,
+      mix_hash: Map.get(elixir, "mixHash", "0x0"),
+      nonce: Map.get(elixir, "nonce", 0),
+      number: number,
+      parent_hash: parent_hash,
+      receipts_root: receipts_root,
+      sha3_uncles: sha3_uncles,
+      size: size,
+      state_root: state_root,
+      timestamp: timestamp,
+      total_difficulty: total_difficulty,
+      transactions_root: transactions_root,
+      uncles: uncles,
+      #base_fee_per_gas: base_fee_per_gas,
+      #l1_number: l1_number,
+      #send_count: send_count,
+      #send_root: send_root
+    }
+  end
+
   @doc """
   Get `t:EthereumJSONRPC.Transactions.elixir/0` from `t:elixir/0`
 
@@ -606,6 +655,11 @@ defmodule EthereumJSONRPC.Block do
 
   # Size and totalDifficulty may be `nil` for uncle blocks
   defp entry_to_elixir({key, nil}) when key in ~w(size totalDifficulty) do
+    {key, nil}
+  end
+
+  # Arbitrum keys that may be nil from classic
+  defp entry_to_elixir({key, nil}) when key in ~w(sendCount sendRoot l1BlockNumber baseFeePerGas) do
     {key, nil}
   end
 

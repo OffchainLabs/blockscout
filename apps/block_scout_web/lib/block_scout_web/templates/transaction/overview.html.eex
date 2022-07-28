@@ -14,6 +14,7 @@
    120 -> "Arbitrum Legacy Transaction (120)"
    _ -> @transaction.type
 end %>
+<% classic = @transaction.type == 120 %>
 <% max_fee_per_gas = @transaction.max_fee_per_gas %>
 <% decoded_input_data = decoded_input_data(@transaction) %>
 <% status = transaction_status(@transaction) %>
@@ -42,7 +43,11 @@ end %>
           <% end %>
           <h1 class="card-title">
             <div style="display: inline-block; vertical-align: bottom; line-height: 25px;">
+              <%= if classic do %>
+              <%= gettext "Classic Transaction Details" %>
+              <% else %>
               <%= gettext "Transaction Details" %>
+              <% end %>
             </div>
           </h1>
           <%= if status == :pending do %>
@@ -84,7 +89,7 @@ end %>
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-              text: gettext("Current transaction state: Success, Failed (Error), or Pending (In Process)") %>
+              text: gettext("Whether the transaction succeeded.") %>
               <%= gettext "Result" %>
             </dt>
             <dd class="col-sm-9 col-lg-10">

@@ -318,7 +318,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
         end
 
       {:error, {:import = step, reason}} ->
-        Logger.error(fn -> inspect(reason) end, step: step)
+        Logger.error(fn -> ["Failed to import (3): ", inspect(reason)] end, step: step)
 
       {:error, {step, reason}} ->
         Logger.error(
