@@ -15,6 +15,7 @@
    _ -> @transaction.type
 end %>
 <% classic = @transaction.type == 120 %>
+<% show_usd = !empty_exchange_rate?(@exchange_rate) %>
 <% max_fee_per_gas = @transaction.max_fee_per_gas %>
 <% decoded_input_data = decoded_input_data(@transaction) %>
 <% status = transaction_status(@transaction) %>
@@ -308,6 +309,7 @@ end %>
               <% end %>
             <% _ -> %>
           <% end %>
+
           <!-- Value -->
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
@@ -316,10 +318,10 @@ end %>
               <%= gettext "Value" %>
             </dt>
             <dd class="col-sm-9 col-lg-10"> <%= value(@transaction) %>
-            <%= if !empty_exchange_rate?(@exchange_rate) do %>
-              (<span data-wei-value=<%= @transaction.value.value %>
-                data-usd-exchange-rate=<%= @exchange_rate.usd_value %>>
-              </span>)
+            <%= if show_usd do %>
+                  (<span data-wei-value=<%= @transaction.value.value %>
+                         data-usd-exchange-rate=<%= @exchange_rate.usd_value %>>
+                  </span>)
             <% end %>
             </dd>
           </dl>
@@ -334,8 +336,10 @@ end %>
             <dd class="col-sm-9 col-lg-10">
               <%= formatted_fee(@transaction, denomination: :ether) %>
 
-              <%= if !empty_exchange_rate?(@exchange_rate) do %>
-                (<span data-wei-value=<%= fee(@transaction) %> data-usd-exchange-rate=<%= @exchange_rate.usd_value %>></span>)
+              <%= if show_usd do %>
+                  (<span data-wei-value=<%= fee(@transaction) %>
+                         data-usd-exchange-rate=<%= @exchange_rate.usd_value %>>
+                  </span>)
               <% end %>
             </dd>
           </dl>
@@ -347,7 +351,15 @@ end %>
                 text: gettext("Fee paid to the L1 aggregator for posting this transaction.") %>
               <%= gettext "Poster Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.effective_gas_price, @transaction.gas_used_for_l1), :ether) %> </dd>
+            <dd class="col-sm-9 col-lg-10">
+              <% poster_fee = Explorer.Chain.Wei.mult(@transaction.effective_gas_price, @transaction.gas_used_for_l1) %>
+              <%= format_wei_value(poster_fee, :ether) %>
+              <%= if show_usd do %>
+                  (<span data-wei-value=<%= poster_fee.value %>
+                        data-usd-exchange-rate=<%= @exchange_rate.usd_value %>>
+                  </span>)
+              <% end %>
+            </dd>
           </dl>
 
           <!-- Network Fee -->
@@ -357,7 +369,15 @@ end %>
                 text: gettext("Fee paid to the network for L2 resources.") %>
               <%= gettext "Network Fee" %>
             </dt>
-            <dd class="col-sm-9 col-lg-10"> <%= format_wei_value(Explorer.Chain.Wei.mult(@transaction.effective_gas_price, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)), :ether) %> </dd>
+            <dd class="col-sm-9 col-lg-10">
+              <% network_fee = Explorer.Chain.Wei.mult(@transaction.effective_gas_price, Decimal.sub(@transaction.gas_used, @transaction.gas_used_for_l1)) %>
+              <%= format_wei_value(network_fee, :ether) %>
+              <%= if show_usd do %>
+                  (<span data-wei-value=<%= network_fee.value %>
+                        data-usd-exchange-rate=<%= @exchange_rate.usd_value %>>
+                  </span>)
+              <% end %>
+            </dd>
           </dl>
 
           <!-- Gas Price -->
