@@ -23,7 +23,7 @@ const datadir = __dirname + '/data/';
     const install = async (address, file, name, version) => {
         console.log("Installing", name, 'at', '0x' + address);
         let abi = JSON.parse(fs.readFileSync(datadir + file + '.abi'));
-        let desc = fs.readFileSync(datadir + file + '.txt').toString().replace(/\n/g, '\n\r');
+        let desc = fs.readFileSync(datadir + file + '.txt').toString().trim();
         let code = Buffer.from('fe', 'hex');
         let addr = Buffer.from('00000000000000000000000000000000000' + address, 'hex');
 
