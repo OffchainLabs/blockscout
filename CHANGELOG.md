@@ -4,6 +4,8 @@
 
 ### Fixes
 - [#6038](https://github.com/blockscout/blockscout/pull/6038) - Extend token name from string to text type
+- [#5850](https://github.com/blockscout/blockscout/pull/5850) - Fix too large postgres notifications
+
 
 ### Chore
 
