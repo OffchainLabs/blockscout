@@ -69,10 +69,9 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
 
   defp entry(%{
          block_hash: %Hash{bytes: block_hash_bytes},
-         nonce: nonce,
+         nonce: %Decimal{} = nonce,
          from_address_hash: %Hash{bytes: from_address_hash_bytes}
-       })
-       when is_integer(nonce) do
+       }) do
     {block_hash_bytes, nonce, from_address_hash_bytes}
   end
 
@@ -80,8 +79,7 @@ defmodule Indexer.Fetcher.ReplacedTransaction do
     {:pending, nonce, from_address_hash_bytes, hash}
   end
 
-  defp params({block_hash_bytes, nonce, from_address_hash_bytes})
-       when is_integer(nonce) do
+  defp params({block_hash_bytes, %Decimal{} = nonce, from_address_hash_bytes}) do
     {:ok, from_address_hash} = Hash.Address.cast(from_address_hash_bytes)
     {:ok, block_hash} = Hash.Full.cast(block_hash_bytes)
 

@@ -233,7 +233,7 @@ defmodule Explorer.Chain.Transaction do
     field(:index, :integer)
     field(:created_contract_code_indexed_at, :utc_datetime_usec)
     field(:input, Data)
-    field(:nonce, :integer)
+    field(:nonce, :decimal)
     field(:r, :decimal)
     field(:s, :decimal)
     field(:status, Status)
