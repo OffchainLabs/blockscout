@@ -6,12 +6,20 @@ const host = process.argv[2] || 'localhost';
 const port = process.argv[3] || 7432;
 
 const { Client } = require('pg')
-const client = new Client({
-    user: 'postgres',
-    host: host,
-    database: 'blockscout',
-    port: port,
-})
+
+let client
+if (process.env.DATABASE_URL) {
+    client = new Client({
+        connectionString: process.env.DATABASE_URL
+    })
+} else {
+    client = new Client({
+        user: 'postgres',
+        host: host,
+        database: 'blockscout',
+        port: port,
+    })
+}
 
 console.log("Updating Postgres tables for L2 Arbitrum");
 
