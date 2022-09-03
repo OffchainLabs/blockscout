@@ -57,7 +57,7 @@ defmodule Explorer.Chain.Cache.GasPriceOracle do
         where: transaction.gas_price > ^0,
         group_by: block.number,
         order_by: [desc: block.number],
-        select: min(transaction.gas_price),
+        select: min(transaction.effective_gas_price),
         limit: ^num_of_blocks
       )
 
@@ -67,16 +67,14 @@ defmodule Explorer.Chain.Cache.GasPriceOracle do
 
     latest_ordered_gas_prices =
       latest_gas_prices
-      |> Enum.map(fn %Wei{value: gas_price} -> Decimal.to_integer(gas_price) end)
+      |> Enum.map(fn %Wei{value: basefee} -> Decimal.to_integer(basefee) end)
 
-    safelow_gas_price = gas_price_percentile_to_gwei(latest_ordered_gas_prices, safelow_percentile)
-    average_gas_price = gas_price_percentile_to_gwei(latest_ordered_gas_prices, average_percentile)
-    fast_gas_price = gas_price_percentile_to_gwei(latest_ordered_gas_prices, fast_percentile)
+    base_fee = Enum.sum(latest_ordered_gas_prices) / length(latest_gas_prices) / 1000000000.0
 
     gas_prices = %{
-      "slow" => safelow_gas_price,
-      "average" => average_gas_price,
-      "fast" => fast_gas_price
+      "slow" => base_fee,
+      "average" => base_fee,
+      "fast" => base_fee
     }
 
     {:ok, gas_prices}
