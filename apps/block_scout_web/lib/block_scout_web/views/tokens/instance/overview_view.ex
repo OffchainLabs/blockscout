@@ -23,9 +23,10 @@ defmodule BlockScoutWeb.Tokens.Instance.OverviewView do
   def total_supply?(%Token{total_supply: nil}), do: false
   def total_supply?(%Token{total_supply: _}), do: true
 
-  def media_src(nil), do: @stub_image
+  def media_src(instance, high_quality_media? \\ nil)
+  def media_src(nil, _), do: @stub_image
 
-  def media_src(instance, high_quality_media? \\ nil) do
+  def media_src(instance, high_quality_media?) do
     result = get_media_src(instance.metadata, high_quality_media?)
 
     if String.trim(result) == "", do: media_src(nil), else: result
@@ -178,11 +179,11 @@ defmodule BlockScoutWeb.Tokens.Instance.OverviewView do
 
   defp compose_ipfs_url(image_url) do
     cond do
-      image_url =~ "ipfs://ipfs" ->
+      image_url =~ ~r/^ipfs:\/\/ipfs/ ->
         "ipfs://ipfs" <> ipfs_uid = image_url
         "https://ipfs.io/ipfs/" <> ipfs_uid
 
-      image_url =~ "ipfs://" ->
+      image_url =~ ~r/^ipfs:\/\// ->
         "ipfs://" <> ipfs_uid = image_url
         "https://ipfs.io/ipfs/" <> ipfs_uid
 
