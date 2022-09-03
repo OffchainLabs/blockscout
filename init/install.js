@@ -9,8 +9,8 @@ const { Client } = require('pg')
 
 let client
 if (process.env.DATABASE_URL) {
-    let login = process.env.DATABASE_URL.split('?')[0];
-    console.log('connecting as ', login)
+    let login = process.env.DATABASE_URL;
+    console.log('connecting as ', login);
     client = new Client({
         connectionString: login,
     })
