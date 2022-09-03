@@ -96,4 +96,4 @@ COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 
 # arbitrum: copy the init script
-COPY --from=builder /init ./init
+COPY --from=builder /app/init ./init
