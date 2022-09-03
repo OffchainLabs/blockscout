@@ -95,5 +95,5 @@ WORKDIR /app
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 
-# arbitrum: copy everything
-FROM builder
+# arbitrum: copy the init script
+COPY --from=builder /init ./init
