@@ -348,7 +348,7 @@ end %>
           <dl class="row">
             <dt class="col-sm-3 col-lg-2 text-muted">
               <%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Fee paid to the L1 aggregator for posting this transaction.") %>
+                text: gettext("Fee paid to the poster for L1 resources.") %>
               <%= gettext "Poster Fee" %>
             </dt>
             <dd class="col-sm-9 col-lg-10">
