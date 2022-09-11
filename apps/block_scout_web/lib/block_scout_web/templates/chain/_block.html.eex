@@ -13,7 +13,7 @@
       </div>
       <%= if System.get_env("HIDE_BLOCK_MINER") !== "true" do %>
         <div class="text-truncate">
-          <%= gettext "Miner" %>
+          <%= gettext "Poster" %>
           <%= render BlockScoutWeb.AddressView,
             "_link.html",
             address: @block.miner,
