@@ -166,7 +166,7 @@ function getTxHistoryData (transactionHistory) {
   if (transactionHistory.length === 0) {
     return getDataFromLocalStorage('txHistoryData')
   }
-  const data = transactionHistory.map(dataPoint => ({ x: dataPoint.date, y: dataPoint.number_of_transactions }))
+  const data = transactionHistory.map(dataPoint => ({ x: dataPoint.date, y: dataPoint.number_of_transactions - dataPoint.number_of_blocks }))
 
   // it should be empty value for tx history the current day
   const prevDayStr = data[0].x

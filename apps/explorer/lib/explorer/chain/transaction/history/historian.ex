@@ -22,7 +22,7 @@ defmodule Explorer.Chain.Transaction.History.Historian do
     if num_days == 1 do
       Logger.info("tx/per day chart: records collected #{inspect(records)}")
 
-      records = [%{date: date_today(), number_of_transactions: 0, gas_used: 0, total_fee: 0} | records]
+      records = [%{date: date_today(), number_of_transactions: 0, number_of_blocks: 0, gas_used: 0, total_fee: 0} | records]
       # base case
       {:ok, records}
     else
@@ -73,7 +73,7 @@ defmodule Explorer.Chain.Transaction.History.Historian do
 
             compile_records(num_days - 1, records)
           else
-            records = [%{date: day_to_fetch, number_of_transactions: 0, gas_used: 0, total_fee: 0} | records]
+            records = [%{date: day_to_fetch, number_of_transactions: 0, number_of_blocks: 0, gas_used: 0, total_fee: 0} | records]
             compile_records(num_days - 1, records)
           end
       end
@@ -120,7 +120,9 @@ defmodule Explorer.Chain.Transaction.History.Historian do
     total_fee = Repo.one(total_fee_query, timeout: :infinity)
     Logger.info("tx/per day chart: total fee #{total_fee}")
 
-    %{number_of_transactions: num_transactions, gas_used: gas_used, total_fee: total_fee}
+    num_blocks = max_block - min_block + 1
+
+    %{number_of_transactions: num_transactions, number_of_blocks: num_blocks, gas_used: gas_used, total_fee: total_fee}
   end
 
   @impl Historian

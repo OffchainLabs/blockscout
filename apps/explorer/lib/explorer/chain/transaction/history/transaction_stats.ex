@@ -17,6 +17,7 @@ defmodule Explorer.Chain.Transaction.History.TransactionStats do
   schema "transaction_stats" do
     field(:date, :date)
     field(:number_of_transactions, :integer)
+    field(:number_of_blocks, :integer)
     field(:gas_used, :decimal)
     field(:total_fee, :decimal)
   end
@@ -31,6 +32,7 @@ defmodule Explorer.Chain.Transaction.History.TransactionStats do
   @type t :: %__MODULE__{
           date: Date.t(),
           number_of_transactions: integer(),
+          number_of_blocks: integer(),
           gas_used: non_neg_integer(),
           total_fee: non_neg_integer()
         }

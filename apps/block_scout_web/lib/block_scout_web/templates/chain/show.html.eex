@@ -69,7 +69,8 @@
                     <%= gettext "Daily Transactions" %>
                 </span>
                 <span class="dashboard-banner-chart-legend-value" data-selector="tx_per_day">
-                    <% num_of_transactions = BlockScoutWeb.Cldr.Number.to_string!(Enum.at(@transaction_stats, 0).number_of_transactions, format: "#,###") %>
+                    <% today = Enum.at(@transaction_stats, 0) %>
+                    <% num_of_transactions = BlockScoutWeb.Cldr.Number.to_string!(today.number_of_transactions - today.number_of_blocks, format: "#,###") %>
                     <%= num_of_transactions %>
                     <% gas_used = Enum.at(@transaction_stats, 0).gas_used %>
                     <%= if gas_used && gas_used > 0 do %>
@@ -110,7 +111,7 @@
             </span>
             <div class="d-flex">
               <span class="dashboard-banner-network-stats-value" data-selector="transaction-count">
-                <%= BlockScoutWeb.Cldr.Number.to_string!(@transaction_estimated_count, format: "#,###") %>
+                <%= BlockScoutWeb.Cldr.Number.to_string!(@transaction_estimated_count - @block_count, format: "#,###") %>
               </span>
               <%= if @total_gas_usage > 0 do %>
                 <span

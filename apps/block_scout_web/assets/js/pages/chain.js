@@ -231,7 +231,8 @@ const elements = {
   '[data-selector="tx_per_day"]': {
     render ($el, state, oldState) {
       if (!(JSON.stringify(oldState.transactionStats) === JSON.stringify(state.transactionStats))) {
-        $el.empty().append(numeral(state.transactionStats[0].number_of_transactions).format('0,0'))
+        const today = state.transactionStats[0];
+        $el.empty().append(numeral(today.number_of_transactions - today.number_of_blocks).format('0,0'))
       }
     }
   },

@@ -28,7 +28,7 @@ defmodule BlockScoutWeb.Chain.TransactionHistoryChartController do
 
   defp extract_history(db_results) do
     Enum.map(db_results, fn row ->
-      %{date: row.date, number_of_transactions: row.number_of_transactions}
+      %{date: row.date, number_of_transactions: row.number_of_transactions, number_of_blocks: row.number_of_blocks}
     end)
   end
 
