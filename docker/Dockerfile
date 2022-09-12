@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apk --no-cache --update add alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file qemu-x86_64 jq
 
-ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc \
+ENV GLIBC_REPO=https://github.com/Rjerk/alpine-pkg-glibc \
     GLIBC_VERSION=2.30-r0 \
     PORT=4000 \
     MIX_ENV="prod" \
@@ -15,7 +15,7 @@ ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc \
 RUN set -ex && \
     apk --update add libstdc++ curl ca-certificates && \
     for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION}; \
-        do curl -sSL ${GLIBC_REPO}/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
+        do curl -sSL ${GLIBC_REPO}/releases/download/${GLIBC_VERSION}-arm64/${pkg}.apk -o /tmp/${pkg}.apk; done && \
     apk add --allow-untrusted /tmp/*.apk && \
     rm -v /tmp/*.apk && \
     /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib
