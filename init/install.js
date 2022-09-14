@@ -51,7 +51,7 @@ const datadir = __dirname + '/data/';
              ON CONFLICT DO NOTHING`,
             [addr],
         );
-        
+
         await client.query(
             `INSERT INTO smart_contracts (name, address_hash, compiler_version, abi, contract_source_code, 
              optimization, inserted_at, updated_at, contract_code_md5, is_changed_bytecode)
