@@ -52,3 +52,5 @@ rachel/
 
 .idea/
 *.iml
+
+.vscode
