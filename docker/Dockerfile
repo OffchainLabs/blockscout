@@ -60,10 +60,18 @@ RUN mix compile && npm install npm@latest
 RUN cd apps/block_scout_web/assets/ && \
     npm install && \
     npm run deploy && \
-    cd /app/apps/explorer/ && \
+    cd -
+
+# Arbitrum: prepare arbitrary abi-installation
+RUN cd init/ && \
+    npm install && \
+    cd -
+
+RUN cd /app/apps/explorer/ && \
     npm install && \
     apk update && \
-    apk del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3
+    apk --update del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 \
+    || echo failed removing apks
 
 RUN mix phx.digest
 
@@ -78,3 +86,6 @@ WORKDIR /app
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
+
+# arbitrum: copy the init script
+COPY --from=builder /app/init ./init

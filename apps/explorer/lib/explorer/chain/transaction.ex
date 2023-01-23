@@ -32,9 +32,9 @@ defmodule Explorer.Chain.Transaction do
   alias Explorer.Chain.Transaction.{Fork, Status}
 
   @optional_attrs ~w(max_priority_fee_per_gas max_fee_per_gas block_hash block_number created_contract_address_hash cumulative_gas_used earliest_processing_start
-                     error gas_used index created_contract_code_indexed_at status to_address_hash revert_reason type has_error_in_internal_txs)a
+                     error gas_used gas_used_for_l1 index created_contract_code_indexed_at status to_address_hash revert_reason type has_error_in_internal_txs)a
 
-  @required_attrs ~w(from_address_hash gas gas_price hash input nonce r s v value)a
+  @required_attrs ~w(from_address_hash gas gas_price effective_gas_price hash input nonce r s v value)a
 
   @typedoc """
   X coordinate module n in
@@ -153,7 +153,9 @@ defmodule Explorer.Chain.Transaction do
           from_address_hash: Hash.Address.t(),
           gas: Gas.t(),
           gas_price: wei_per_gas,
+          effective_gas_price: wei_per_gas,
           gas_used: Gas.t() | nil,
+          gas_used_for_l1: Gas.t() | nil,
           hash: Hash.t(),
           index: transaction_index | nil,
           input: Data.t(),
@@ -182,7 +184,9 @@ defmodule Explorer.Chain.Transaction do
              :error,
              :gas,
              :gas_price,
+             :effective_gas_price,
              :gas_used,
+             :gas_used_for_l1,
              :index,
              :created_contract_code_indexed_at,
              :input,
@@ -202,7 +206,9 @@ defmodule Explorer.Chain.Transaction do
              :error,
              :gas,
              :gas_price,
+             :effective_gas_price,
              :gas_used,
+             :gas_used_for_l1,
              :index,
              :created_contract_code_indexed_at,
              :input,
@@ -223,11 +229,13 @@ defmodule Explorer.Chain.Transaction do
     field(:error, :string)
     field(:gas, :decimal)
     field(:gas_price, Wei)
+    field(:effective_gas_price, Wei)
     field(:gas_used, :decimal)
+    field(:gas_used_for_l1, :decimal)
     field(:index, :integer)
     field(:created_contract_code_indexed_at, :utc_datetime_usec)
     field(:input, Data)
-    field(:nonce, :integer)
+    field(:nonce, :decimal)
     field(:r, :decimal)
     field(:s, :decimal)
     field(:status, Status)

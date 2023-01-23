@@ -12,6 +12,11 @@ defmodule Explorer.Repo.Migrations.CreateBlocks do
       add(:nonce, :bytea, null: false)
       add(:number, :bigint, null: false)
 
+      # arbitrum fields
+      add(:l1_number, :bigint, null: true)
+      add(:send_count, :bigint, null: true)
+      add(:send_root, :bytea, null: true)
+
       # not a foreign key to allow skipped blocks
       add(:parent_hash, :bytea, null: false)
 

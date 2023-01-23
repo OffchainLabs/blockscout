@@ -197,7 +197,7 @@
         const to = toAddress(log.stack.peek(1).toString(16));
 
         // Skip any pre-compile invocations, those are just fancy opcodes
-        if (!isPrecompiled(to)) {
+        if (!isPrecompiled(to) || isPrecompiledArbOS(to)) {
             this.callCustomOp(log, op, to);
         }
     },

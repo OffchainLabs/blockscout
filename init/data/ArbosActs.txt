@@ -1,0 +1,10 @@
+ArbOS is the Layer 2 EVM hypervisor that facilitates the execution environment of L2 Arbitrum.
+ArbOS accounts for and manages network resources, produces blocks from incoming messages, and
+operates its instrumented instance of geth for smart contract execution.
+For more information please see the source code and documentation.
+
+Source Code
+https://github.com/OffchainLabs/nitro
+
+Documentation
+https://github.com/OffchainLabs/nitro/blob/master/docs/arbos/ArbOS.md

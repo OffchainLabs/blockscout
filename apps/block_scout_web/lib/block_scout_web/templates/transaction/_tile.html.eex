@@ -1,4 +1,5 @@
 <% status = transaction_status(@transaction) %>
+<% classic = @transaction.type == 120 %>
 <% error_in_internal_tx = @transaction.has_error_in_internal_txs %>
 <% current_user = AuthController.current_user(@conn) %>
 <% tx_tags = BlockScoutWeb.Models.GetTransactionTags.get_transaction_with_addresses_tags(@transaction, current_user) %>
@@ -21,7 +22,11 @@
             <span class="loading-spinner-block-2"></span>
           </div>
         <% end %>
+        <%= if classic && status == {:error, :classic_failure} do %>
+        <%= gettext("Classic Failure") %>
+        <% else %>
         <%= formatted_result(status) %>
+        <% end %>
       </span>
     </div>
     <!-- Content -->
