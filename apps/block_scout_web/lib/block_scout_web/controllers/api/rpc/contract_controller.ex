@@ -4,12 +4,13 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
   require Logger
 
   alias BlockScoutWeb.AddressContractVerificationController, as: VerificationController
-  alias BlockScoutWeb.API.RPC.Helpers
+  alias BlockScoutWeb.API.RPC.{AddressController, Helpers}
   alias Explorer.Chain
   alias Explorer.Chain.Events.Publisher, as: EventsPublisher
-  alias Explorer.Chain.{Hash, SmartContract}
+  alias Explorer.Chain.{Address, Hash, SmartContract}
   alias Explorer.Chain.SmartContract.VerificationStatus
   alias Explorer.Etherscan.Contracts
+  alias Explorer.SmartContract.Helper
   alias Explorer.SmartContract.Solidity.Publisher
   alias Explorer.SmartContract.Solidity.PublisherWorker, as: SolidityPublisherWorker
   alias Explorer.SmartContract.Vyper.Publisher, as: VyperPublisher
@@ -119,7 +120,7 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
          {:format, {:ok, _casted_address_hash}} <- to_address_hash(address_hash),
          {:params, {:ok, fetched_params}} <- {:params, fetch_verifysourcecode_params(params)},
          uid <- VerificationStatus.generate_uid(address_hash) do
-      Que.add(SolidityPublisherWorker, {fetched_params, json_input, uid})
+      Que.add(SolidityPublisherWorker, {"json_api", fetched_params, json_input, uid})
 
       render(conn, :show, %{result: uid})
     else
@@ -180,11 +181,11 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
 
       jsons =
         files_array
-        |> Enum.filter(fn file -> only_json(file.filename) end)
+        |> Enum.filter(fn file -> Helper.json_file?(file.filename) end)
 
       sols =
         files_array
-        |> Enum.filter(fn file -> only_sol(file.filename) end)
+        |> Enum.filter(fn file -> Helper.sol_file?(file.filename) end)
 
       if length(jsons) > 0 and length(sols) > 0 do
         {:ok, files_array}
@@ -199,26 +200,6 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
       "sol" ->
         true
 
-      "json" ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
-  defp only_sol(filename) do
-    case List.last(String.split(String.downcase(filename), ".")) do
-      "sol" ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
-  defp only_json(filename) do
-    case List.last(String.split(String.downcase(filename), ".")) do
       "json" ->
         true
 
@@ -423,7 +404,7 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
       address = Contracts.address_hash_to_address_with_source_code(address_hash)
 
       render(conn, :getsourcecode, %{
-        contract: address
+        contract: address || %Address{hash: address_hash, smart_contract: nil}
       })
     else
       {:address_param, :error} ->
@@ -431,9 +412,6 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
 
       {:format, :error} ->
         render(conn, :error, error: @invalid_address)
-
-      {:contract, :not_found} ->
-        render(conn, :getsourcecode, %{contract: nil, address_hash: nil})
     end
   end
 
@@ -442,7 +420,7 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
 
     case Map.get(opts, :filter) do
       :verified ->
-        Contracts.list_verified_contracts(page_size, offset)
+        Contracts.list_verified_contracts(page_size, offset, opts)
 
       :decompiled ->
         not_decompiled_with_version = Map.get(opts, :not_decompiled_with_version)
@@ -465,7 +443,9 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
   defp add_filters(options, params) do
     options
     |> add_filter(params)
-    |> add_not_decompiled_with_version(params)
+    |> add_param(params, :not_decompiled_with_version)
+    |> AddressController.put_timestamp(params, "verified_at_start_timestamp")
+    |> AddressController.put_timestamp(params, "verified_at_end_timestamp")
   end
 
   defp add_filter(options, params) do
@@ -478,14 +458,14 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
     end
   end
 
-  defp add_not_decompiled_with_version({:ok, options}, params) do
-    case Map.fetch(params, "not_decompiled_with_version") do
-      {:ok, value} -> {:ok, Map.put(options, :not_decompiled_with_version, value)}
+  defp add_param({:ok, options}, params, key) do
+    case Map.fetch(params, Atom.to_string(key)) do
+      {:ok, value} -> {:ok, Map.put(options, key, value)}
       :error -> {:ok, options}
     end
   end
 
-  defp add_not_decompiled_with_version(options, _params) do
+  defp add_param(options, _params, _key) do
     options
   end
 
@@ -590,7 +570,7 @@ defmodule BlockScoutWeb.API.RPC.ContractController do
   defp parse_optimization_runs(other), do: other
 
   defp fetch_external_libraries(params) do
-    Enum.reduce(1..10, %{}, fn number, acc ->
+    Enum.reduce(1..Application.get_env(:block_scout_web, :verification_max_libraries), %{}, fn number, acc ->
       case Map.fetch(params, "library#{number}Name") do
         {:ok, library_name} ->
           library_address = Map.get(params, "library#{number}Address")

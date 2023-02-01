@@ -2,29 +2,34 @@ import 'bootstrap'
 
 export async function addChainToMM ({ btn }) {
   try {
-    const chainID = await window.ethereum.request({ method: 'eth_chainId' })
-    const chainIDFromEnvVar = parseInt(process.env.CHAIN_ID)
-    const chainIDHex = chainIDFromEnvVar && `0x${chainIDFromEnvVar.toString(16)}`
-    const blockscoutURL = location.protocol + '//' + location.host + process.env.NETWORK_PATH
-    if (chainID !== chainIDHex) {
+    const chainIDFromWallet = await window.ethereum.request({ method: 'eth_chainId' })
+    const chainIDFromInstance = getChainIdHex()
+
+    const coinName = document.getElementById('js-coin-name').value
+    const subNetwork = document.getElementById('js-subnetwork').value
+    const jsonRPC = document.getElementById('js-json-rpc').value
+    const path = process.env.NETWORK_PATH || '/'
+
+    const blockscoutURL = location.protocol + '//' + location.host + path
+    if (chainIDFromWallet !== chainIDFromInstance) {
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: chainIDHex,
-          chainName: process.env.SUBNETWORK,
+          chainId: chainIDFromInstance,
+          chainName: subNetwork,
           nativeCurrency: {
-            name: process.env.COIN_NAME,
-            symbol: process.env.COIN_NAME,
+            name: coinName,
+            symbol: coinName,
             decimals: 18
           },
-          rpcUrls: [process.env.JSON_RPC],
+          rpcUrls: [jsonRPC],
           blockExplorerUrls: [blockscoutURL]
         }]
       })
     } else {
       btn.tooltip('dispose')
       btn.tooltip({
-        title: `You're already connected to ${process.env.SUBNETWORK}`,
+        title: `You're already connected to ${subNetwork}`,
         trigger: 'click',
         placement: 'bottom'
       }).tooltip('show')
@@ -36,4 +41,10 @@ export async function addChainToMM ({ btn }) {
   } catch (error) {
     console.error(error)
   }
+}
+
+function getChainIdHex () {
+  const chainIDFromDOM = document.getElementById('js-chain-id').value
+  const chainIDFromInstance = parseInt(chainIDFromDOM)
+  return chainIDFromInstance && `0x${chainIDFromInstance.toString(16)}`
 }

@@ -24,7 +24,6 @@ Some data has to be extracted from already fetched data, and there're several tr
 - `address_token_balances`: creates token balance entities for futher fetching, based on detected token transfers
 - `blocks`: extracts block signer hash from additional data for Clique chains
 
-
 ### Root fetchers
 
 - `pending_transaction`: fetches pending transactions (i.e. not yet collated into a block) every second (`pending_transaction_interval`)
@@ -32,6 +31,7 @@ Some data has to be extracted from already fetched data, and there're several tr
 - `block/catchup`: gets unfetched ranges of blocks, imports them in batches
 
 Both block fetchers retrieve/extract the blocks themselves and the following additional data:
+
 - `block_second_degree_relations`
 - `transactions`
 - `logs`
@@ -39,16 +39,19 @@ Both block fetchers retrieve/extract the blocks themselves and the following add
 - `addresses`
 
 The following stubs for further async fetching are inserted as well:
+
 - `block_rewards`
 - `address_coin_balances`
 - `address_token_balances`
 - `tokens`
 
 Realtime fetcher also immediately fetches from the node:
+
 - current balances for `addresses`
 - `address_coin_balances`
 
 The following async fetchers are launched for importing missing data:
+
 - `replaced_transaction`
 - `block_reward`
 - `uncle_block`
@@ -62,6 +65,7 @@ The following async fetchers are launched for importing missing data:
 
 These are responsible for fetching additional block data not retrieved in root fetchers.
 Most of them are based off `BufferedTask`, and the basic algorithm goes like this:
+
 1. Make an initial streaming request to database to fetch identifiers of all existing unfetched items.
 2. Accept new identifiers for fetching via `async_fetch()` method.
 3. Split identifier in batches and run tasks on `TaskSupervisor` according to `max_batch_size` and `max_concurrency` settings.
@@ -73,13 +77,14 @@ Most of them are based off `BufferedTask`, and the basic algorithm goes like thi
 - `replaced_transaction`: not a fetcher per se, but rather an async worker, which discards previously pending transactions after they are replaced with new pending transactions with the same nonce, or are collated in a block.
 - `block_reward`: missing `block_rewards` for consensus blocks
 - `uncle_block`: blocks for `block_second_degree_relations` with null `uncle_fetched_at`
-- `internal_transaction`: for either `blocks` (Parity) or `transactions` with null `internal_transactions_indexed_at`
+- `internal_transaction`: for either `blocks` (Nethermind) or `transactions` with null `internal_transactions_indexed_at`
 - `coin_balance`: for `address_coin_balances` with null `value_fetched_at`
 - `token_balance`: for `address_token_balances` with null `value_fetched_at`. Also upserts `address_current_token_balances`
 - `token`: for `tokens` with `cataloged == false`
 - `contract_code`: for `transactions` with non-null `created_contract_address_hash` and null `created_contract_code_indexed_at`
 
 Additionally:
+
 - `token_updater` is run every 2 days to update token metadata
 - `coin_balance_on_demand` is triggered from web UI to ensure address balance is as up-to-date as possible
 
@@ -106,22 +111,22 @@ This defaults to 150 seconds, but it can be set via adding a configuration to `s
 
 ## Testing
 
-### Parity
+### Nethermind
 
 #### Mox
 
 **This is the default setup.  `mix test` will work on its own, but to be explicit, use the following setup**:
 
 ```shell
-export ETHEREUM_JSONRPC_CASE=EthereumJSONRPC.Case.Parity.Mox
-mix test --exclude no_parity
+export ETHEREUM_JSONRPC_CASE=EthereumJSONRPC.Case.Nethermind.Mox
+mix test --exclude no_nethermind
 ```
 
 #### HTTP / WebSocket
 
 ```shell
-export ETHEREUM_JSONRPC_CASE=EthereumJSONRPC.Case.Parity.HTTPWebSocket
-mix test --exclude no_parity
+export ETHEREUM_JSONRPC_CASE=EthereumJSONRPC.Case.Nethermind.HTTPWebSocket
+mix test --exclude no_nethermind
 ```
 
 | Protocol  | URL                                |

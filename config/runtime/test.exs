@@ -1,8 +1,12 @@
 import Config
 
+alias EthereumJSONRPC.Variant
+
 ######################
 ### BlockScout Web ###
 ######################
+
+config :block_scout_web, BlockScoutWeb.API.V2, enabled: true
 
 ########################
 ### Ethereum JSONRPC ###
@@ -12,15 +16,7 @@ import Config
 ### Explorer ###
 ################
 
-variant =
-  if is_nil(System.get_env("ETHEREUM_JSONRPC_VARIANT")) do
-    "parity"
-  else
-    System.get_env("ETHEREUM_JSONRPC_VARIANT")
-    |> String.split(".")
-    |> List.last()
-    |> String.downcase()
-  end
+variant = Variant.get()
 
 Code.require_file("#{variant}.exs", "apps/explorer/config/test")
 

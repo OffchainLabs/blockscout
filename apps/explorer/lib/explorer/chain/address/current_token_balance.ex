@@ -23,7 +23,7 @@ defmodule Explorer.Chain.Address.CurrentTokenBalance do
    *  `token_contract_address_hash` - The contract address hash foreign key.
    *  `block_number` - The block's number that the transfer took place.
    *  `value` - The value that's represents the balance.
-   *  `token_id` - The token_id of the transferred token (applicable for ERC-1155 and ERC-721 tokens)
+   *  `token_id` - The token_id of the transferred token (applicable for ERC-1155)
    *  `token_type` - The type of the token
   """
   @type t :: %__MODULE__{
@@ -158,14 +158,28 @@ defmodule Explorer.Chain.Address.CurrentTokenBalance do
   @doc """
   Builds an `t:Ecto.Query.t/0` to fetch the current token balances of the given address.
   """
-  def last_token_balances(address_hash) do
+  def last_token_balances(address_hash, type \\ [])
+
+  def last_token_balances(address_hash, [type | _]) do
+    from(
+      ctb in __MODULE__,
+      where: ctb.address_hash == ^address_hash,
+      where: ctb.value > 0,
+      where: ctb.token_type == ^type,
+      left_join: t in Token,
+      on: ctb.token_contract_address_hash == t.contract_address_hash,
+      select: {ctb, t},
+      order_by: [desc: ctb.value, asc: t.type, asc: t.name]
+    )
+  end
+
+  def last_token_balances(address_hash, _) do
     from(
       ctb in __MODULE__,
       where: ctb.address_hash == ^address_hash,
       where: ctb.value > 0,
       left_join: t in Token,
       on: ctb.token_contract_address_hash == t.contract_address_hash,
-      preload: :token,
       select: {ctb, t},
       order_by: [desc: ctb.value, asc: t.type, asc: t.name]
     )
@@ -174,11 +188,11 @@ defmodule Explorer.Chain.Address.CurrentTokenBalance do
   @doc """
   Builds an `t:Ecto.Query.t/0` to fetch the current token balances of the given address (paginated version).
   """
-  def last_token_balances(address_hash, options) do
+  def last_token_balances(address_hash, options, type) do
     paging_options = Keyword.get(options, :paging_options, @default_paging_options)
 
     address_hash
-    |> last_token_balances()
+    |> last_token_balances(type)
     |> limit(^paging_options.page_size)
   end
 

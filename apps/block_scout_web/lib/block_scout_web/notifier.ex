@@ -8,6 +8,7 @@ defmodule BlockScoutWeb.Notifier do
   alias BlockScoutWeb.{
     AddressContractVerificationViaFlattenedCodeView,
     AddressContractVerificationViaJsonView,
+    AddressContractVerificationViaMultiPartFilesView,
     AddressContractVerificationViaStandardJsonInputView,
     AddressContractVerificationVyperView,
     Endpoint
@@ -183,7 +184,7 @@ defmodule BlockScoutWeb.Notifier do
     today = Date.utc_today()
 
     [{:history_size, history_size}] =
-      Application.get_env(:block_scout_web, BlockScoutWeb.Chain.TransactionHistoryChartController, 30)
+      Application.get_env(:block_scout_web, BlockScoutWeb.Chain.TransactionHistoryChartController, {:history_size, 30})
 
     x_days_back = Date.add(today, -1 * history_size)
 
@@ -206,14 +207,13 @@ defmodule BlockScoutWeb.Notifier do
   end
 
   def select_contract_type_and_form_view(params) do
-    verification_from_metadata_json? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "json:metadata"
+    verification_from_metadata_json? = check_verification_type(params, "json:metadata")
 
-    verification_from_standard_json_input? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "json:standard"
+    verification_from_standard_json_input? = check_verification_type(params, "json:standard")
 
-    verification_from_vyper? =
-      Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == "vyper"
+    verification_from_vyper? = check_verification_type(params, "vyper")
+
+    verification_from_multi_part_files? = check_verification_type(params, "multi-part-files")
 
     compiler = if verification_from_vyper?, do: :vyper, else: :solc
 
@@ -222,17 +222,31 @@ defmodule BlockScoutWeb.Notifier do
         verification_from_standard_json_input? -> AddressContractVerificationViaStandardJsonInputView
         verification_from_metadata_json? -> AddressContractVerificationViaJsonView
         verification_from_vyper? -> AddressContractVerificationVyperView
+        verification_from_multi_part_files? -> AddressContractVerificationViaMultiPartFilesView
         true -> AddressContractVerificationViaFlattenedCodeView
       end
 
     %{view: view, compiler: compiler}
   end
 
+  defp check_verification_type(params, type),
+    do: Map.has_key?(params, "verification_type") && Map.get(params, "verification_type") == type
+
   @doc """
   Broadcast the percentage of blocks indexed so far.
   """
   def broadcast_blocks_indexed_ratio(ratio, finished?) do
     Endpoint.broadcast("blocks:indexing", "index_status", %{
+      ratio: Decimal.to_string(ratio),
+      finished: finished?
+    })
+  end
+
+  @doc """
+  Broadcast the percentage of pending block operations indexed so far.
+  """
+  def broadcast_internal_transactions_indexed_ratio(ratio, finished?) do
+    Endpoint.broadcast("blocks:indexing_internal_transactions", "index_status", %{
       ratio: Decimal.to_string(ratio),
       finished: finished?
     })
@@ -367,8 +381,6 @@ defmodule BlockScoutWeb.Notifier do
   end
 
   defp broadcast_token_transfer(token_transfer, event) do
-    Endpoint.broadcast("token_transfers:#{token_transfer.transaction_hash}", event, %{})
-
     Endpoint.broadcast("addresses:#{token_transfer.from_address_hash}", event, %{
       address: token_transfer.from_address,
       token_transfer: token_transfer

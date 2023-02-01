@@ -9,7 +9,7 @@ defmodule BlockScoutWeb.AddressContractView do
     render_scripts(conn, "address_contract/code_highlighting.js")
   end
 
-  def format_smart_contract_abi(abi), do: Poison.encode!(abi, pretty: false)
+  def format_smart_contract_abi(abi) when not is_nil(abi), do: Poison.encode!(abi, %{pretty: false})
 
   @doc """
   Returns the correct format for the optimization text.
@@ -83,11 +83,11 @@ defmodule BlockScoutWeb.AddressContractView do
     end
   end
 
-  defp decode_data("0x" <> encoded_data, types) do
+  def decode_data("0x" <> encoded_data, types) do
     decode_data(encoded_data, types)
   end
 
-  defp decode_data(encoded_data, types) do
+  def decode_data(encoded_data, types) do
     encoded_data
     |> Base.decode16!(case: :mixed)
     |> TypeDecoder.decode_raw(types)
@@ -130,7 +130,7 @@ defmodule BlockScoutWeb.AddressContractView do
   end
 
   def creation_code(%Address{contracts_creation_internal_transaction: %InternalTransaction{}} = address) do
-    address.contracts_creation_internal_transaction.input
+    address.contracts_creation_internal_transaction.init
   end
 
   def creation_code(%Address{contracts_creation_transaction: %Transaction{}} = address) do

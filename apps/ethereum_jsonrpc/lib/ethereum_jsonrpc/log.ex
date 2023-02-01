@@ -135,7 +135,7 @@ defmodule EthereumJSONRPC.Log do
         "type" => "mined"
       }
 
-  Geth and Parity >= 1.11.4 includes a `"removed"` key
+  Geth includes a `"removed"` key
 
       iex> EthereumJSONRPC.Log.to_elixir(
       ...>   %{
@@ -171,8 +171,9 @@ defmodule EthereumJSONRPC.Log do
     Enum.into(log, %{}, &entry_to_elixir/1)
   end
 
-  defp entry_to_elixir({key, _} = entry) when key in ~w(address blockHash data removed topics transactionHash type),
-    do: entry
+  defp entry_to_elixir({key, _} = entry)
+       when key in ~w(address blockHash data removed topics transactionHash type timestamp),
+       do: entry
 
   defp entry_to_elixir({key, quantity}) when key in ~w(blockNumber logIndex transactionIndex transactionLogIndex) do
     if is_nil(quantity) do

@@ -5,21 +5,42 @@
 # is restricted to this project.
 import Config
 
+network_path =
+  "NETWORK_PATH"
+  |> System.get_env("/")
+  |> (&(if String.ends_with?(&1, "/") do
+          String.trim_trailing(&1, "/")
+        else
+          &1
+        end)).()
+
+api_path =
+  "API_PATH"
+  |> System.get_env("/")
+  |> (&(if String.ends_with?(&1, "/") do
+          String.trim_trailing(&1, "/")
+        else
+          &1
+        end)).()
+
 # General application configuration
 config :block_scout_web,
   namespace: BlockScoutWeb,
-  ecto_repos: [Explorer.Repo]
+  ecto_repos: [Explorer.Repo, Explorer.Repo.Account],
+  cookie_domain: System.get_env("SESSION_COOKIE_DOMAIN")
 
 config :block_scout_web,
   admin_panel_enabled: System.get_env("ADMIN_PANEL_ENABLED", "") == "true"
 
 config :block_scout_web, BlockScoutWeb.Counters.BlocksIndexedCounter, enabled: true
 
+config :block_scout_web, BlockScoutWeb.Counters.InternalTransactionsIndexedCounter, enabled: true
+
 # Configures the endpoint
 config :block_scout_web, BlockScoutWeb.Endpoint,
   url: [
-    path: System.get_env("NETWORK_PATH") || "/",
-    api_path: System.get_env("API_PATH") || "/"
+    path: network_path,
+    api_path: api_path
   ],
   render_errors: [view: BlockScoutWeb.ErrorView, accepts: ~w(html json)],
   pubsub_server: BlockScoutWeb.PubSub
@@ -77,6 +98,19 @@ config :block_scout_web, BlockScoutWeb.ApiRouter,
   wobserver_enabled: System.get_env("WOBSERVER_ENABLED") == "true"
 
 config :block_scout_web, BlockScoutWeb.WebRouter, enabled: System.get_env("DISABLE_WEBAPP") != "true"
+
+config :block_scout_web, BlockScoutWeb.CSPHeader,
+  mixpanel_url: System.get_env("MIXPANEL_URL", "https://api-js.mixpanel.com"),
+  amplitude_url: System.get_env("AMPLITUDE_URL", "https://api2.amplitude.com/2/httpapi")
+
+# Configures Ueberauth local settings
+config :ueberauth, Ueberauth,
+  providers: [
+    auth0: {
+      Ueberauth.Strategy.Auth0,
+      [callback_path: "/auth/auth0/callback", callback_params: ["path"]]
+    }
+  ]
 
 config :hammer,
   backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 4, cleanup_interval_ms: 60_000 * 10]}

@@ -35,7 +35,7 @@ defmodule Explorer.Chain.Address do
   @type hash :: Hash.t()
 
   @typedoc """
-   * `fetched_coin_balance` - The last fetched balance from Parity
+   * `fetched_coin_balance` - The last fetched balance from Nethermind
    * `fetched_coin_balance_block_number` - the `t:Explorer.Chain.Block.t/0` `t:Explorer.Chain.Block.block_number/0` for
      which `fetched_coin_balance` was fetched
    * `hash` - the hash of the address's public key
@@ -259,14 +259,10 @@ defmodule Explorer.Chain.Address do
     )
   end
 
-  @doc """
-  Counts all the addresses.
-  """
-  def count do
-    from(
-      a in Address,
-      select: fragment("COUNT(*)")
-    )
+  def fetched_coin_balance(address_hash) when not is_nil(address_hash) do
+    Address
+    |> where([address], address.hash == ^address_hash)
+    |> select([address], address.fetched_coin_balance)
   end
 
   defimpl String.Chars do

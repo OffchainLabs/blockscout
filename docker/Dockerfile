@@ -24,20 +24,21 @@ RUN set -ex && \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 ARG CACHE_EXCHANGE_RATES_PERIOD
-ARG DISABLE_READ_API
+ARG DISABLE_READ_API=true
 ARG API_PATH
 ARG NETWORK_PATH
 ARG DISABLE_WEBAPP
-ARG DISABLE_WRITE_API
+ARG DISABLE_WRITE_API=true
 ARG CACHE_ENABLE_TOTAL_GAS_USAGE_COUNTER
 ARG WOBSERVER_ENABLED
 ARG ADMIN_PANEL_ENABLED
 ARG CACHE_ADDRESS_WITH_BALANCES_UPDATE_INTERVAL
 ARG SOCKET_ROOT
-ARG CHAIN_ID
-ARG JSON_RPC
-ARG SUBNETWORK
-ARG COIN_NAME
+ARG SESSION_COOKIE_DOMAIN
+ARG MIXPANEL_TOKEN
+ARG MIXPANEL_URL
+ARG AMPLITUDE_API_KEY
+ARG AMPLITUDE_URL
 
 # Cache elixir deps
 ADD mix.exs mix.lock ./
@@ -51,15 +52,6 @@ RUN mix do deps.get, local.rebar --force, deps.compile
 ADD . .
 
 COPY . .
-
-ARG COIN
-RUN if [ "$COIN" != "" ]; then \
-        sed -i s/"POA"/"${COIN}"/g apps/block_scout_web/priv/gettext/en/LC_MESSAGES/default.po; \
-        sed -i "/msgid \"Ether\"/{n;s/msgstr \"\"/msgstr \"${COIN}\"/g}" apps/block_scout_web/priv/gettext/default.pot; \
-        sed -i "/msgid \"Ether\"/{n;s/msgstr \"\"/msgstr \"${COIN}\"/g}" apps/block_scout_web/priv/gettext/en/LC_MESSAGES/default.po; \
-        sed -i "/msgid \"ETH\"/{n;s/msgstr \"\"/msgstr \"${COIN}\"/g}" apps/block_scout_web/priv/gettext/default.pot; \
-        sed -i "/msgid \"ETH\"/{n;s/msgstr \"\"/msgstr \"${COIN}\"/g}" apps/block_scout_web/priv/gettext/en/LC_MESSAGES/default.po; \
-    fi
 
 # Run forderground build and phoenix digest
 RUN mix compile && npm install npm@latest

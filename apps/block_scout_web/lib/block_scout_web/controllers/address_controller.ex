@@ -1,7 +1,11 @@
 defmodule BlockScoutWeb.AddressController do
   use BlockScoutWeb, :controller
 
+  import BlockScoutWeb.Account.AuthController, only: [current_user: 1]
+
   import BlockScoutWeb.Chain, only: [paging_options: 1, next_page_params: 3, split_list_by_page: 1]
+
+  import BlockScoutWeb.Models.GetAddressTags, only: [get_address_tags: 2]
 
   alias BlockScoutWeb.{
     AccessHelpers,
@@ -10,7 +14,6 @@ defmodule BlockScoutWeb.AddressController do
     Controller
   }
 
-  alias Explorer.Counters.{AddressTokenTransfersCounter, AddressTransactionsCounter, AddressTransactionsGasUsageCounter}
   alias Explorer.{Chain, Market}
   alias Explorer.Chain.Wei
   alias Explorer.ExchangeRates.Token
@@ -101,7 +104,8 @@ defmodule BlockScoutWeb.AddressController do
         exchange_rate: Market.get_exchange_rate(Explorer.coin()) || Token.null(),
         filter: params["filter"],
         counters_path: address_path(conn, :address_counters, %{"id" => address_hash_string}),
-        current_path: Controller.current_full_path(conn)
+        current_path: Controller.current_full_path(conn),
+        tags: get_address_tags(address_hash, current_user(conn))
       )
     else
       :error ->
@@ -130,7 +134,8 @@ defmodule BlockScoutWeb.AddressController do
               exchange_rate: Market.get_exchange_rate(Explorer.coin()) || Token.null(),
               filter: params["filter"],
               counters_path: address_path(conn, :address_counters, %{"id" => address_hash_string}),
-              current_path: Controller.current_full_path(conn)
+              current_path: Controller.current_full_path(conn),
+              tags: get_address_tags(address_hash, current_user(conn))
             )
 
           _ ->
@@ -142,7 +147,7 @@ defmodule BlockScoutWeb.AddressController do
   def address_counters(conn, %{"id" => address_hash_string}) do
     with {:ok, address_hash} <- Chain.string_to_address_hash(address_hash_string),
          {:ok, address} <- Chain.hash_to_address(address_hash) do
-      {validation_count} = address_counters(address)
+      {validation_count} = Chain.address_counters(address)
 
       transactions_from_db = address.transactions_count || 0
       token_transfers_from_db = address.token_transfers_count || 0
@@ -163,58 +168,5 @@ defmodule BlockScoutWeb.AddressController do
           validation_count: 0
         })
     end
-  end
-
-  defp address_counters(address) do
-    validation_count_task =
-      Task.async(fn ->
-        validation_count(address)
-      end)
-
-    Task.start_link(fn ->
-      transaction_count(address)
-    end)
-
-    Task.start_link(fn ->
-      token_transfers_count(address)
-    end)
-
-    Task.start_link(fn ->
-      gas_usage_count(address)
-    end)
-
-    [
-      validation_count_task
-    ]
-    |> Task.yield_many(:infinity)
-    |> Enum.map(fn {_task, res} ->
-      case res do
-        {:ok, result} ->
-          result
-
-        {:exit, reason} ->
-          raise "Query fetching address counters terminated: #{inspect(reason)}"
-
-        nil ->
-          raise "Query fetching address counters timed out."
-      end
-    end)
-    |> List.to_tuple()
-  end
-
-  def transaction_count(address) do
-    AddressTransactionsCounter.fetch(address)
-  end
-
-  def token_transfers_count(address) do
-    AddressTokenTransfersCounter.fetch(address)
-  end
-
-  def gas_usage_count(address) do
-    AddressTransactionsGasUsageCounter.fetch(address)
-  end
-
-  defp validation_count(address) do
-    Chain.address_to_validation_count(address.hash)
   end
 end
