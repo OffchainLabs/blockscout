@@ -113,8 +113,6 @@ defmodule BlockScoutWeb.WebRouter do
       resources("/transactions", BlockTransactionController, only: [:index], as: :transaction)
     end
 
-    get("/reorgs", BlockController, :reorg, as: :reorg)
-
     get("/uncles", BlockController, :uncle, as: :uncle)
 
     resources("/pending-transactions", PendingTransactionController, only: [:index])
