@@ -1,0 +1,5 @@
+This contract doesn't exist on-chain.
+This is a virtual interface used by Arbitrum Nodes for RPC purposes
+
+For more info on using this interface, please see
+https://github.com/OffchainLabs/nitro/tree/master/contracts/src/node-interface

@@ -79,7 +79,7 @@ defmodule Indexer.Temporary.UncatalogedTokenTransfers do
   def handle_info({ref, {:error, reason}}, %{task_ref: ref, retry_interval: millis} = state) do
     case reason do
       :queue_unavailable -> :ok
-      _ -> Logger.error(fn -> inspect(reason) end)
+      _ -> Logger.error(fn -> ["Error handling info: ", inspect(reason)] end)
     end
 
     Process.demonitor(ref, [:flush])

@@ -40,7 +40,25 @@
               <%= render BlockScoutWeb.CommonComponentsView, "_btn_qr_code.html" %>
             </span>
           </h1>
-          <h3 class="address-detail-hash-title mb-4 <%= if BlockScoutWeb.AddressView.contract?(@address) do %>contract-address<% end %>" data-test="address_detail_hash"><%= @address %></h3>
+          <h3 class="address-detail-hash-title mb-4 <%= if BlockScoutWeb.AddressView.contract?(@address) do %>contract-address<% end %>" data-test="address_detail_hash"><%= case "" <> Base.encode16(@address.hash.bytes, case: :lower) do
+ "00000000000000000000000000000000000a4b05" -> "ArbOS, the EVM hypervisor (0x00000a4b05)"
+ "0000000000000000000000000000000000000064" -> "ArbSys Precompile Contract (0x0000000064)"
+ "0000000000000000000000000000000000000065" -> "ArbInfo Precompile Contract (0x0000000065)"
+ "0000000000000000000000000000000000000066" -> "ArbAddressTable Precompile Contract (0x0000000066)"
+ "0000000000000000000000000000000000000067" -> "ArbBLS Precompile Contract (0x0000000067)"
+ "0000000000000000000000000000000000000068" -> "ArbFunctionTable Precompile Contract (0x0000000068)"
+ "0000000000000000000000000000000000000069" -> "ArbosTest Precompile Contract (0x0000000069)"
+ "000000000000000000000000000000000000006b" -> "ArbOwnerPublic Precompile Contract (0x000000006b)"
+ "000000000000000000000000000000000000006c" -> "ArbGasInfo Precompile Contract (0x000000006c)"
+ "000000000000000000000000000000000000006d" -> "ArbAggregator Precompile Contract (0x000000006d)"
+ "000000000000000000000000000000000000006e" -> "ArbRetryableTx Precompile Contract (0x000000006e)"
+ "000000000000000000000000000000000000006f" -> "ArbStatistics Precompile Contract (0x000000006f)"
+ "0000000000000000000000000000000000000070" -> "ArbOwner Precompile Contract (0x0000000070)"
+ "00000000000000000000000000000000000000c8" -> "NodeInterface virtual RPC (0x00000000c8)"
+ "00000000000000000000000000000000000000c9" -> "NodeInterfaceDebug virtual RPC (0x00000000c9)"
+ "00000000000000000000000000000000000000ff" -> "ArbDebug Precompile Contract (0x00000000ff)"
+ _ -> "0x" <> Base.encode16(@address.hash.bytes, case: :lower)
+          end %></h3>
           <!-- Verify in other explorers -->
           <!--
           <%# <%= render "_verify_other_explorers.html", hash: @address.hash, type: "address" %> %>
@@ -102,7 +120,8 @@
                 <%= gettext("Creator") %>
               </dt>
               <dd class="col-sm-8 col-md-8 col-lg-9" data-test="address_contract_creator">
-                <%= if from_address_hash do %>
+                <%= cond do %>
+                <%= from_address_hash -> %>
                   <%= link(
                     trimmed_hash(from_address_hash(@address)),
                     to: address_path(@conn, :show, from_address_hash(@address))
@@ -115,9 +134,13 @@
                     to: transaction_path(@conn, :show, transaction_hash(@address)),
                     "data-test": "transaction_hash_link"
                   ) %>
-                <% else %>
-                  <p class="alert alert-danger" role="alert"><%= render BlockScoutWeb.CommonComponentsView, "_i_tooltip_2.html",
-                text: gettext("Contract was precompiled and created at genesis or contract creation transaction is missing") %><%= gettext("Error: Could not determine contract creator.") %></p>
+                  
+                <% current_address == "0x00000000000000000000000000000000000a4b05" ||
+                   String.slice(current_address, 0..-3) == "0x00000000000000000000000000000000000000" -> %>
+                <%= gettext "Created at Genesis" %>
+
+                <% true -> %>
+                  <p class="alert alert-danger" role="alert"><%= gettext("Error: Could not determine contract creator.") %></p>
                 <% end %>
               </dd>
             </dl>

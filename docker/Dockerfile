@@ -24,9 +24,11 @@ RUN set -ex && \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 ARG CACHE_EXCHANGE_RATES_PERIOD
-ARG DISABLE_READ_API
+ARG DISABLE_READ_API=true
+ARG API_PATH
+ARG NETWORK_PATH
 ARG DISABLE_WEBAPP
-ARG DISABLE_WRITE_API
+ARG DISABLE_WRITE_API=true
 ARG CACHE_ENABLE_TOTAL_GAS_USAGE_COUNTER
 ARG WOBSERVER_ENABLED
 ARG ADMIN_PANEL_ENABLED
@@ -57,10 +59,18 @@ RUN mix compile && npm install npm@latest
 RUN cd apps/block_scout_web/assets/ && \
     npm install && \
     npm run deploy && \
-    cd /app/apps/explorer/ && \
+    cd -
+
+# Arbitrum: prepare arbitrary abi-installation
+RUN cd init/ && \
+    npm install && \
+    cd -
+
+RUN cd /app/apps/explorer/ && \
     npm install && \
     apk update && \
-    apk del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3
+    apk --update del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 \
+    || echo failed removing apks
 
 RUN mix phx.digest
 
@@ -78,3 +88,6 @@ WORKDIR /app
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 COPY --from=builder /app/config/config_helper.exs ./config/config_helper.exs
+
+# arbitrum: copy the init script
+COPY --from=builder /app/init ./init

@@ -123,6 +123,8 @@ defmodule EthereumJSONRPC.Receipt do
         %{
           "cumulativeGasUsed" => cumulative_gas_used,
           "gasUsed" => gas_used,
+          "gasUsedForL1" => gas_used_for_l1,
+          "effectiveGasPrice" => effective_gas_price,
           "contractAddress" => created_contract_address_hash,
           "transactionHash" => transaction_hash,
           "transactionIndex" => transaction_index
@@ -133,6 +135,8 @@ defmodule EthereumJSONRPC.Receipt do
     %{
       cumulative_gas_used: cumulative_gas_used,
       gas_used: gas_used,
+      gas_used_for_l1: gas_used_for_l1,
+      effective_gas_price: effective_gas_price,
       created_contract_address_hash: created_contract_address_hash,
       status: status,
       transaction_hash: transaction_hash,
@@ -257,7 +261,7 @@ defmodule EthereumJSONRPC.Receipt do
        do: {:ok, entry}
 
   defp entry_to_elixir({key, quantity})
-       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex) do
+       when key in ~w(blockNumber cumulativeGasUsed gasUsed transactionIndex gasUsedForL1 effectiveGasPrice) do
     result =
       if is_nil(quantity) do
         nil
@@ -299,7 +303,7 @@ defmodule EthereumJSONRPC.Receipt do
     :ignore
   end
 
-  # Arbitrum fields
+  # Arbitrum Classic fields
   defp entry_to_elixir({key, _}) when key in ~w(returnData returnCode feeStats l1BlockNumber) do
     :ignore
   end

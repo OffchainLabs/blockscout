@@ -28,46 +28,26 @@
               </span>
               <%= gettext("Blockchain") %>
             </a>
-            <div class="dropdown-menu" aria-labelledby="navbarBlockchainDropdown">
-              <div class="nav-submenu">
-                <span>
-                  <%= gettext("Blocks") %>
-                </span>
-              </div>
-              <%= link(
-                    gettext("Blocks"),
-                    to: blocks_path(@conn, :index),
-                    class: "dropdown-item #{tab_status("blocks", @conn.request_path)}")%>
-              <%= link(gettext("Uncles"),
-                    to: uncle_path(@conn, :uncle),
-                    class: "dropdown-item #{tab_status("uncles", @conn.request_path)}")%>
-              <%= link(gettext("Forked Blocks (Reorgs)"),
-                    to: reorg_path(@conn, :reorg),
-                    class: "border-bottom dropdown-item #{tab_status("reorgs", @conn.request_path)}")%>
-              <div class="nav-submenu">
-                <span>
-                  <%= gettext("Transactions") %>
-                </span>
-              </div>
-              <% json_rpc_named_arguments = Application.fetch_env!(:indexer, :json_rpc_named_arguments)%>
-              <% variant = Keyword.fetch!(json_rpc_named_arguments, :variant) %>
-              <%= link(
-                    gettext("Validated"),
-                    to: transaction_path(@conn, :index),
-                    class: "#{if variant == EthereumJSONRPC.Besu, do: "border-bottom", else: ""} dropdown-item #{tab_status("txs", @conn.request_path)}"
-                  ) %>
 
-              <%= if variant !== EthereumJSONRPC.Besu do %>
-                <%= link(
-                      gettext("Pending"),
-                      class: "border-bottom dropdown-item #{tab_status("pending-transactions", @conn.request_path)}",
-                      "data-test": "pending_transactions_link",
-                      to: pending_transaction_path(@conn, :index)
-                    ) %>
+            <div class="dropdown-menu" aria-labelledby="navbarBlocksDropdown">
+              <%= link to: blocks_path(@conn, :index), class: "dropdown-item #{tab_status("blocks", @conn.request_path)}" do %>
+                <%= gettext("Blocks") %>
               <% end %>
-              <%= link(gettext("Verified contracts"),
-                    to: verified_contracts_path(@conn, :index),
-                    class: "dropdown-item #{tab_status("reorgs", @conn.request_path)}")%>
+            </div>
+          </li>
+          <li class="nav-item dropdown" id="activeTransactions">
+            <a href="#" role="button" id="navbarTransactionsDropdown" class="nav-link topnav-nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="nav-link-icon">
+                <%= render BlockScoutWeb.IconsView, "_transaction_icon.html" %>
+              </span>
+              <%= gettext("Transactions") %>
+            </a>
+            <div class="dropdown-menu" aria-labeledby="navbarTransactionsDropdown">
+              <%= link(
+                    gettext("Sequenced"),
+                    class: "dropdown-item #{tab_status("txs", @conn.request_path)}",
+                    to: transaction_path(@conn, :index)
+                  ) %>
             </div>
           </li>
           <li class="nav-item dropdown">
@@ -118,7 +98,7 @@
             </div>
           </li>
         <% end %>
-        <%= if apps_menu == true do %>
+        <%= if false do %>
           <li class="nav-item dropdown">
             <a href="#" role="button" id="navbarAppsDropdown" class="nav-link topnav-nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span class="nav-link-icon">

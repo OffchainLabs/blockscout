@@ -3,7 +3,7 @@ defmodule EthereumJSONRPC.FetchedBalance do
   A single balance fetched from `eth_getBalance`.
   """
 
-  import EthereumJSONRPC, only: [quantity_to_integer: 1]
+  import EthereumJSONRPC, only: [quantity_to_integer: 1, integer_to_quantity: 1]
 
   @type params :: %{address_hash: EthereumJSONRPC.hash(), block_number: non_neg_integer(), value: non_neg_integer()}
   @type error :: %{code: integer(), message: String.t(), data: %{block_quantity: String.t(), hash: String.t()}}
@@ -56,7 +56,22 @@ defmodule EthereumJSONRPC.FetchedBalance do
         when id: EthereumJSONRPC.request_id(),
              block_quantity: EthereumJSONRPC.quantity(),
              hash_data: EthereumJSONRPC.hash()
-  def request(%{id: id, block_quantity: block_quantity, hash_data: hash_data}) do
-    EthereumJSONRPC.request(%{id: id, method: "eth_getBalance", params: [hash_data, block_quantity]})
+        def request(%{id: id, block_quantity: block_quantity, hash_data: hash_data}) do
+
+        zero = quantity_to_integer(block_quantity) == 0
+        classic = System.get_env("ARBITRUM_UPGRADED_FROM_CLASSIC", "false") == "true"
+
+        if zero and classic do
+          # classic nodes can't serve eth_getBalance on block zero,
+          # so we'll instead issue a call that we know will always return zero
+
+          IO.puts "Faking eth_getBalance on block 0 for " <> hash_data
+
+          fake_block = EthereumJSONRPC.integer_to_quantity(1)
+          fake_address = "0x1010101010101010101010101010101010101010"
+          EthereumJSONRPC.request(%{id: id, method: "eth_getBalance", params: [fake_address, fake_block]})
+        else
+          EthereumJSONRPC.request(%{id: id, method: "eth_getBalance", params: [hash_data, block_quantity]})
+        end
   end
 end
