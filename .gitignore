@@ -51,6 +51,10 @@ screenshots/
 /docker-compose/tmp
 /docker-compose/logs
 
+# Arbitrum
+init/node_modules/
+rachel/
+
 .idea/
 *.iml
 

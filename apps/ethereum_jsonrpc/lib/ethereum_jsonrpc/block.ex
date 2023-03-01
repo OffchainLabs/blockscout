@@ -29,7 +29,10 @@ defmodule EthereumJSONRPC.Block do
           total_difficulty: non_neg_integer(),
           transactions_root: EthereumJSONRPC.hash(),
           uncles: [EthereumJSONRPC.hash()],
-          base_fee_per_gas: non_neg_integer()
+          base_fee_per_gas: non_neg_integer(),
+          l1_number: non_neg_integer(),
+          send_count: non_neg_integer(),
+          send_root: EthereumJSONRPC.hash()
         }
 
   @typedoc """
@@ -212,7 +215,10 @@ defmodule EthereumJSONRPC.Block do
           "totalDifficulty" => total_difficulty,
           "transactionsRoot" => transactions_root,
           "uncles" => uncles,
-          "baseFeePerGas" => base_fee_per_gas
+          "baseFeePerGas" => base_fee_per_gas,
+          "l1BlockNumber" => l1_number,
+          "sendCount" => send_count,
+          "sendRoot" => send_root
         } = elixir
       ) do
     %{
@@ -235,7 +241,10 @@ defmodule EthereumJSONRPC.Block do
       total_difficulty: total_difficulty,
       transactions_root: transactions_root,
       uncles: uncles,
-      base_fee_per_gas: base_fee_per_gas
+      base_fee_per_gas: base_fee_per_gas,
+      l1_number: l1_number,
+      send_count: send_count,
+      send_root: send_root
     }
   end
 
@@ -257,7 +266,10 @@ defmodule EthereumJSONRPC.Block do
           "timestamp" => timestamp,
           "transactionsRoot" => transactions_root,
           "uncles" => uncles,
-          "baseFeePerGas" => base_fee_per_gas
+          "baseFeePerGas" => base_fee_per_gas,
+          "l1BlockNumber" => l1_number,
+          "sendCount" => send_count,
+          "sendRoot" => send_root
         } = elixir
       ) do
     %{
@@ -279,7 +291,10 @@ defmodule EthereumJSONRPC.Block do
       timestamp: timestamp,
       transactions_root: transactions_root,
       uncles: uncles,
-      base_fee_per_gas: base_fee_per_gas
+      base_fee_per_gas: base_fee_per_gas,
+      l1_number: l1_number,
+      send_count: send_count,
+      send_root: send_root
     }
   end
 
@@ -301,7 +316,10 @@ defmodule EthereumJSONRPC.Block do
           "timestamp" => timestamp,
           "totalDifficulty" => total_difficulty,
           "transactionsRoot" => transactions_root,
-          "uncles" => uncles
+          "uncles" => uncles,
+          "l1BlockNumber" => l1_number,
+          "sendCount" => send_count,
+          "sendRoot" => send_root
         } = elixir
       ) do
     %{
@@ -323,7 +341,10 @@ defmodule EthereumJSONRPC.Block do
       timestamp: timestamp,
       total_difficulty: total_difficulty,
       transactions_root: transactions_root,
-      uncles: uncles
+      uncles: uncles,
+      l1_number: l1_number,
+      send_count: send_count,
+      send_root: send_root
     }
   end
 
@@ -345,7 +366,10 @@ defmodule EthereumJSONRPC.Block do
           "stateRoot" => state_root,
           "timestamp" => timestamp,
           "transactionsRoot" => transactions_root,
-          "uncles" => uncles
+          "uncles" => uncles,
+          "l1BlockNumber" => l1_number,
+          "sendCount" => send_count,
+          "sendRoot" => send_root
         } = elixir
       ) do
     %{
@@ -366,7 +390,59 @@ defmodule EthereumJSONRPC.Block do
       state_root: state_root,
       timestamp: timestamp,
       transactions_root: transactions_root,
-      uncles: uncles
+      uncles: uncles,
+      l1_number: l1_number,
+      send_count: send_count,
+      send_root: send_root
+    }
+  end
+
+  # Arbitrum Classic
+  def elixir_to_params(
+        %{
+          "difficulty" => difficulty,
+          "extraData" => extra_data,
+          "gasLimit" => gas_limit,
+          "gasUsed" => gas_used,
+          "hash" => hash,
+          "logsBloom" => logs_bloom,
+          "miner" => miner_hash,
+          "number" => number,
+          "parentHash" => parent_hash,
+          "receiptsRoot" => receipts_root,
+          "sha3Uncles" => sha3_uncles,
+          "size" => size,
+          "stateRoot" => state_root,
+          "timestamp" => timestamp,
+          "totalDifficulty" => total_difficulty,
+          "transactionsRoot" => transactions_root,
+          "uncles" => uncles,
+        } = elixir
+      ) do
+    %{
+      difficulty: difficulty,
+      extra_data: extra_data,
+      gas_limit: gas_limit,
+      gas_used: gas_used,
+      hash: hash,
+      logs_bloom: logs_bloom,
+      miner_hash: miner_hash,
+      mix_hash: Map.get(elixir, "mixHash", "0x0"),
+      nonce: Map.get(elixir, "nonce", 0),
+      number: number,
+      parent_hash: parent_hash,
+      receipts_root: receipts_root,
+      sha3_uncles: sha3_uncles,
+      size: size,
+      state_root: state_root,
+      timestamp: timestamp,
+      total_difficulty: total_difficulty,
+      transactions_root: transactions_root,
+      uncles: uncles,
+      #base_fee_per_gas: base_fee_per_gas,
+      #l1_number: l1_number,
+      #send_count: send_count,
+      #send_root: send_root
     }
   end
 
@@ -572,7 +648,7 @@ defmodule EthereumJSONRPC.Block do
   end
 
   defp entry_to_elixir({key, quantity})
-       when key in ~w(difficulty gasLimit gasUsed minimumGasPrice baseFeePerGas number size cumulativeDifficulty totalDifficulty paidFees) and
+       when key in ~w(difficulty gasLimit gasUsed minimumGasPrice baseFeePerGas number size cumulativeDifficulty totalDifficulty paidFees l1BlockNumber sendCount) and
               not is_nil(quantity) do
     {key, quantity_to_integer(quantity)}
   end
@@ -582,12 +658,16 @@ defmodule EthereumJSONRPC.Block do
     {key, nil}
   end
 
+  # Arbitrum keys that may be nil from classic
+  defp entry_to_elixir({key, nil}) when key in ~w(sendCount sendRoot l1BlockNumber baseFeePerGas) do
+    {key, nil}
+  end
+
   # double check that no new keys are being missed by requiring explicit match for passthrough
   # `t:EthereumJSONRPC.address/0` and `t:EthereumJSONRPC.hash/0` pass through as `Explorer.Chain` can verify correct
   # hash format
   defp entry_to_elixir({key, _} = entry)
-       when key in ~w(author extraData hash logsBloom miner mixHash nonce parentHash receiptsRoot sealFields sha3Uncles
-                     signature stateRoot step transactionsRoot uncles),
+       when key in ~w(author extraData hash logsBloom miner mixHash nonce parentHash receiptsRoot sealFields sha3Uncles signature stateRoot step transactionsRoot uncles bitcoinMergedMiningCoinbaseTransaction bitcoinMergedMiningHeader bitcoinMergedMiningMerkleProof hashForMergedMining committedSeals committee pastCommittedSeals proposerSeal round blockGasCost extDataGasUsed sendRoot),
        do: entry
 
   defp entry_to_elixir({"timestamp" = key, timestamp}) do

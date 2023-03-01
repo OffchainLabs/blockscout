@@ -1249,18 +1249,18 @@ defmodule Explorer.Chain do
 
   """
   @spec fee(Transaction.t(), :ether | :gwei | :wei) :: {:maximum, Decimal.t()} | {:actual, Decimal.t()}
-  def fee(%Transaction{gas: gas, gas_price: gas_price, gas_used: nil}, unit) do
+  def fee(%Transaction{gas: gas, effective_gas_price: effective_gas_price, gas_used: nil}, unit) do
     fee =
-      gas_price
+      effective_gas_price
       |> Wei.to(unit)
       |> Decimal.mult(gas)
 
     {:maximum, fee}
   end
 
-  def fee(%Transaction{gas_price: gas_price, gas_used: gas_used}, unit) do
+  def fee(%Transaction{effective_gas_price: effective_gas_price, gas_used: gas_used}, unit) do
     fee =
-      gas_price
+      effective_gas_price
       |> Wei.to(unit)
       |> Decimal.mult(gas_used)
 
@@ -3725,6 +3725,9 @@ defmodule Explorer.Chain do
   def transaction_to_status(%Transaction{status: nil}), do: :awaiting_internal_transactions
   def transaction_to_status(%Transaction{status: :ok}), do: :success
 
+  def transaction_to_status(%Transaction{status: :error, error: nil, type: 120}),
+    do: {:error, :classic_failure}
+  
   def transaction_to_status(%Transaction{status: :error, error: nil}),
     do: {:error, :awaiting_internal_transactions}
 
