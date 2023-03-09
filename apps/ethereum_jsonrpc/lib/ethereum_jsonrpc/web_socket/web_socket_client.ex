@@ -109,20 +109,20 @@ defmodule EthereumJSONRPC.WebSocket.WebSocketClient do
   @impl WebSocket
   @spec json_rpc(WebSocket.web_socket(), Transport.request()) :: {:ok, Transport.result()} | {:error, reason :: term()}
   def json_rpc(web_socket, request) do
-    GenServer.call(web_socket, {:gen_call, {:json_rpc, request}}, 60_000)
+    GenServer.call(web_socket, {:gen_call, {:json_rpc, request}}, 60000)
   end
 
   @impl WebSocket
   @spec subscribe(WebSocket.web_socket(), Subscription.event(), Subscription.params()) ::
           {:ok, Subscription.t()} | {:error, reason :: term()}
   def subscribe(web_socket, event, params) when is_binary(event) and is_list(params) do
-    GenServer.call(web_socket, {:gen_call, {:subscribe, event, params}}, 60_000)
+    GenServer.call(web_socket, {:gen_call, {:subscribe, event, params}}, 60000)
   end
 
   @impl WebSocket
   @spec unsubscribe(WebSocket.web_socket(), Subscription.t()) :: :ok | {:error, :not_found}
   def unsubscribe(web_socket, %Subscription{} = subscription) do
-    GenServer.call(web_socket, {:gen_call, {:unsubscribe, subscription}}, 60_000)
+    GenServer.call(web_socket, {:gen_call, {:unsubscribe, subscription}}, 60000)
   end
 
   @impl :websocket_client
