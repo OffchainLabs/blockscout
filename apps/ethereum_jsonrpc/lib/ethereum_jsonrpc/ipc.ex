@@ -22,7 +22,7 @@ defmodule EthereumJSONRPC.IPC do
   end
 
   def post(pid, request) do
-    GenServer.call(pid, {:request, request})
+    GenServer.call(pid, {:request, request}, 60_000)
   end
 
   def receive_response(data, socket, timeout, result \\ <<>>)
