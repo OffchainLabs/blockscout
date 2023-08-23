@@ -90,7 +90,7 @@ ENV RELEASE_VERSION=${RELEASE_VERSION}
 ARG BLOCKSCOUT_VERSION
 ENV BLOCKSCOUT_VERSION=${BLOCKSCOUT_VERSION}
 
-RUN apk --no-cache --update add jq npm
+RUN apk --no-cache --update add jq
 
 WORKDIR /app
 
