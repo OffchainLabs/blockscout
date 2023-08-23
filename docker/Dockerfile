@@ -51,7 +51,8 @@ ADD init ./init
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/local/bin/npm /usr/local/bin/
 COPY --from=node /usr/local/bin/npx /usr/local/bin/
-COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules/
+
+RUN npm install
 
 # Run forderground build and phoenix digest
 RUN mix compile
@@ -97,7 +98,8 @@ WORKDIR /app
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/local/bin/npm /usr/local/bin/
 COPY --from=node /usr/local/bin/npx /usr/local/bin/
-COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules/
+
+RUN npm install
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
