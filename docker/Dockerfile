@@ -1,17 +1,27 @@
-ARG NODE_VERSION=16.13.1
-FROM node:${NODE_VERSION}-alpine AS node
-
-FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2 AS builder
+FROM bitwalker/alpine-elixir-phoenix:1.13 AS builder
 
 WORKDIR /app
 
-RUN apk --no-cache --update add alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file gcompat 
+RUN apk --no-cache --update add alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file qemu-x86_64 jq
 
-ENV PORT=4000 \
+ENV GLIBC_REPO=https://github.com/sgerrand/alpine-pkg-glibc \
+    GLIBC_VERSION=2.30-r0 \
+    PORT=4000 \
     MIX_ENV="prod" \
-    SECRET_KEY_BASE="RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5"
+    SECRET_KEY_BASE="RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5" \
+    PATH="$HOME/.cargo/bin:${PATH}" \
+    RUSTFLAGS="-C target-feature=-crt-static"
 
-RUN apk --update add libstdc++ curl ca-certificates gcompat
+RUN set -ex && \
+    apk --update add libstdc++ curl ca-certificates && \
+    for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION}; \
+        do curl -sSL ${GLIBC_REPO}/releases/download/${GLIBC_VERSION}/${pkg}.apk -o /tmp/${pkg}.apk; done && \
+    apk add --allow-untrusted /tmp/*.apk && \
+    rm -v /tmp/*.apk && \
+    /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib
+
+# Get Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 ARG CACHE_EXCHANGE_RATES_PERIOD
 ARG DISABLE_READ_API=true
@@ -19,12 +29,11 @@ ARG API_PATH
 ARG NETWORK_PATH
 ARG DISABLE_WEBAPP
 ARG DISABLE_WRITE_API=true
+ARG CACHE_ENABLE_TOTAL_GAS_USAGE_COUNTER
 ARG WOBSERVER_ENABLED
-ARG API_V1_READ_METHODS_DISABLED
-ARG API_V1_WRITE_METHODS_DISABLED
-ARG CACHE_TOTAL_GAS_USAGE_COUNTER_ENABLED
 ARG ADMIN_PANEL_ENABLED
 ARG CACHE_ADDRESS_WITH_BALANCES_UPDATE_INTERVAL
+ARG SOCKET_ROOT
 ARG SESSION_COOKIE_DOMAIN
 ARG MIXPANEL_TOKEN
 ARG MIXPANEL_URL
@@ -38,24 +47,14 @@ ADD apps/explorer/mix.exs ./apps/explorer/
 ADD apps/ethereum_jsonrpc/mix.exs ./apps/ethereum_jsonrpc/
 ADD apps/indexer/mix.exs ./apps/indexer/
 
-ENV MIX_HOME=/opt/mix
-RUN mix local.hex --force
 RUN mix do deps.get, local.rebar --force, deps.compile
 
-ADD apps ./apps
-ADD config ./config
-ADD rel ./rel
-ADD *.exs ./
-ADD init ./init
+ADD . .
 
-COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/npm /usr/local/bin/
-COPY --from=node /usr/local/bin/npx /usr/local/bin/
-
-RUN npm install
+COPY . .
 
 # Run forderground build and phoenix digest
-RUN mix compile
+RUN mix compile && npm install npm@latest
 
 # Add blockscout npm deps
 RUN cd apps/block_scout_web/assets/ && \
@@ -74,9 +73,6 @@ RUN cd /app/apps/explorer/ && \
     apk --update del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 \
     || echo failed removing apks
 
-RUN apk add --update git make 
-
-RUN export "CFLAGS=-I/usr/local/include -L/usr/local/lib" && cd deps/ex_secp256k1 && mix deps.get && mix compile
 RUN mix phx.digest
 
 RUN mkdir -p /opt/release \
@@ -84,27 +80,12 @@ RUN mkdir -p /opt/release \
   && mv _build/${MIX_ENV}/rel/blockscout /opt/release
 
 ##############################################################
-FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2
-
-ARG RELEASE_VERSION
-ENV RELEASE_VERSION=${RELEASE_VERSION}
-ARG BLOCKSCOUT_VERSION
-ENV BLOCKSCOUT_VERSION=${BLOCKSCOUT_VERSION}
-
-RUN apk --no-cache --update add jq
+FROM bitwalker/alpine-elixir-phoenix:1.13
 
 WORKDIR /app
-
-COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/npm /usr/local/bin/
-COPY --from=node /usr/local/bin/npx /usr/local/bin/
-
-RUN npm install
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 
 # arbitrum: copy the init script
 COPY --from=builder /app/init ./init
-COPY --from=builder /app/config/config_helper.exs ./config/config_helper.exs
-COPY --from=builder /app/config/config_helper.exs /app/releases/${RELEASE_VERSION}/config_helper.exs
