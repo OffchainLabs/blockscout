@@ -1,3 +1,6 @@
+ARG NODE_VERSION=16.13.1
+FROM node:${NODE_VERSION}-alpine AS node
+
 FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2 AS builder
 
 WORKDIR /app
@@ -45,7 +48,10 @@ ADD rel ./rel
 ADD *.exs ./
 ADD init ./init
 
-RUN apk add --update nodejs npm
+COPY --from=node /usr/lib /usr/lib
+COPY --from=node /usr/local/lib /usr/local/lib
+COPY --from=node /usr/local/include /usr/local/include
+COPY --from=node /usr/local/bin /usr/local/bin
 
 # Run forderground build and phoenix digest
 RUN mix compile && npm install npm@latest
@@ -87,6 +93,11 @@ ENV BLOCKSCOUT_VERSION=${BLOCKSCOUT_VERSION}
 RUN apk --no-cache --update add jq npm
 
 WORKDIR /app
+
+COPY --from=node /usr/lib /usr/lib
+COPY --from=node /usr/local/lib /usr/local/lib
+COPY --from=node /usr/local/include /usr/local/include
+COPY --from=node /usr/local/bin /usr/local/bin
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
