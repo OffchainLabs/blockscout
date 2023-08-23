@@ -248,7 +248,7 @@ defmodule EthereumJSONRPC.Block do
       base_fee_per_gas: base_fee_per_gas,
       l1_number: l1_number,
       send_count: send_count,
-      send_root: send_root
+      send_root: send_root,
       withdrawals_root:
         Map.get(elixir, "withdrawalsRoot", "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
     }
@@ -300,7 +300,7 @@ defmodule EthereumJSONRPC.Block do
       base_fee_per_gas: base_fee_per_gas,
       l1_number: l1_number,
       send_count: send_count,
-      send_root: send_root
+      send_root: send_root,
       withdrawals_root:
         Map.get(elixir, "withdrawalsRoot", "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
     }
@@ -352,7 +352,7 @@ defmodule EthereumJSONRPC.Block do
       uncles: uncles,
       l1_number: l1_number,
       send_count: send_count,
-      send_root: send_root
+      send_root: send_root,
       withdrawals_root:
         Map.get(elixir, "withdrawalsRoot", "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
     }
