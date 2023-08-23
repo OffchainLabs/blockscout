@@ -15,9 +15,9 @@
     <div class="col-md-7 col-lg-8 d-flex flex-column pr-2 pr-sm-2 pr-md-0">
       <%= render BlockScoutWeb.TransactionView, "_link.html", transaction_hash: @internal_transaction.transaction_hash %>
       <span class="text-nowrap">
-        <%= @internal_transaction |> BlockScoutWeb.AddressView.address_partial_selector(:from, assigns[:current_address]) |> (&(if is_list(&1), do: Keyword.put(&1, :ignore_implementation_name, true), else: &1)).() |> BlockScoutWeb.RenderHelpers.render_partial() %>
+        <%= @internal_transaction |> BlockScoutWeb.AddressView.address_partial_selector(:from, assigns[:current_address]) |> (&(if is_list(&1), do: Keyword.put(&1, :ignore_implementation_name, true), else: &1)).() |> BlockScoutWeb.RenderHelper.render_partial() %>
         &rarr;
-        <%= @internal_transaction |> BlockScoutWeb.AddressView.address_partial_selector(:to, assigns[:current_address]) |> (&(if is_list(&1), do: Keyword.put(&1, :ignore_implementation_name, true), else: &1)).() |> BlockScoutWeb.RenderHelpers.render_partial() %>
+        <%= @internal_transaction |> BlockScoutWeb.AddressView.address_partial_selector(:to, assigns[:current_address]) |> (&(if is_list(&1), do: Keyword.put(&1, :ignore_implementation_name, true), else: &1)).() |> BlockScoutWeb.RenderHelper.render_partial() %>
       </span>
       <span class="d-flex flex-md-row flex-column mt-3 mt-md-0">
         <span class="tile-title">
@@ -33,7 +33,7 @@
           to: block_path(BlockScoutWeb.Endpoint, :show, @internal_transaction.block_number)
         ) %>
       </span>
-      <span class="mr-2 mr-md-0 order-2" in-tile data-from-now="<%= @internal_transaction.transaction.block.timestamp %>"></span>
+      <span class="mr-2 mr-md-0 order-2" in-tile data-from-now="<%= @internal_transaction.block.timestamp %>"></span>
       <%= if assigns[:current_address] do %>
         <span class="mr-2 mr-md-0 order-0 order-md-3">
           <%= if assigns[:current_address].hash == @internal_transaction.from_address_hash do %>

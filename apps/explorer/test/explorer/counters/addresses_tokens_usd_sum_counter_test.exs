@@ -8,26 +8,26 @@ defmodule Explorer.Counters.AddressTokenUsdSumTest do
 
     address_current_token_balance =
       build(:token_balance,
-        token: build(:token, name: "token name", decimals: Decimal.new(18)) |> Map.put(:usd_value, Decimal.new(10)),
+        token: build(:token, name: "token name", decimals: Decimal.new(18)) |> Map.put(:fiat_value, Decimal.new(10)),
         value: Decimal.mult(Decimal.new(100_500), Decimal.from_float(:math.pow(10, 18)))
       )
 
     address_current_token_balance_2 =
       build(:token_balance,
-        token: build(:token, name: "token name", decimals: Decimal.new(18)) |> Map.put(:usd_value, Decimal.new(10)),
+        token: build(:token, name: "token name", decimals: Decimal.new(18)) |> Map.put(:fiat_value, Decimal.new(10)),
         value: Decimal.mult(Decimal.new(100_500), Decimal.from_float(:math.pow(10, 18)))
       )
 
     AddressTokenUsdSum.fetch(address.hash, [
-      {address_current_token_balance, address_current_token_balance.token},
-      {address_current_token_balance_2, address_current_token_balance_2.token}
+      address_current_token_balance,
+      address_current_token_balance_2
     ])
 
     Process.sleep(200)
 
     assert AddressTokenUsdSum.fetch(address.hash, [
-             {address_current_token_balance, address_current_token_balance.token},
-             {address_current_token_balance_2, address_current_token_balance_2.token}
+             address_current_token_balance,
+             address_current_token_balance_2
            ]) ==
              Decimal.new(2_010_000)
   end

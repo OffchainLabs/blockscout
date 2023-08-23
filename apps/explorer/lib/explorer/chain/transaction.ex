@@ -12,7 +12,7 @@ defmodule Explorer.Chain.Transaction do
   alias Ecto.Association.NotLoaded
   alias Ecto.Changeset
 
-  alias Explorer.{Chain, Repo}
+  alias Explorer.Chain
 
   alias Explorer.Chain.{
     Address,
@@ -26,10 +26,12 @@ defmodule Explorer.Chain.Transaction do
     SmartContract,
     TokenTransfer,
     Transaction,
+    TransactionAction,
     Wei
   }
 
   alias Explorer.Chain.Transaction.{Fork, Status}
+  alias Explorer.SmartContract.SigProviderInterface
 
   @optional_attrs ~w(max_priority_fee_per_gas max_fee_per_gas block_hash block_number created_contract_address_hash cumulative_gas_used earliest_processing_start
                      error gas_used gas_used_for_l1 index created_contract_code_indexed_at status to_address_hash revert_reason type has_error_in_internal_txs)a
@@ -246,6 +248,7 @@ defmodule Explorer.Chain.Transaction do
     field(:max_fee_per_gas, Wei)
     field(:type, :integer)
     field(:has_error_in_internal_txs, :boolean)
+    field(:has_token_transfers, :boolean, virtual: true)
 
     # A transient field for deriving old block hash during transaction upserts.
     # Used to force refetch of a block in case a transaction is re-collated
@@ -268,6 +271,7 @@ defmodule Explorer.Chain.Transaction do
     has_many(:internal_transactions, InternalTransaction, foreign_key: :transaction_hash)
     has_many(:logs, Log, foreign_key: :transaction_hash)
     has_many(:token_transfers, TokenTransfer, foreign_key: :transaction_hash)
+    has_many(:transaction_actions, TransactionAction, foreign_key: :hash, preload_order: [asc: :log_index])
 
     belongs_to(
       :to_address,
@@ -297,6 +301,25 @@ defmodule Explorer.Chain.Transaction do
       ...>     from_address_hash: "0xe8ddc5c7a2d2f0d7a9798459c0104fdf5e987aca",
       ...>     gas: 4700000,
       ...>     gas_price: 100000000000,
+      ...>     hash: "0x3a3eb134e6792ce9403ea4188e5e79693de9e4c94e499db132be086400da79e6",
+      ...>     input: "0x6060604052341561000f57600080fd5b336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506102db8061005e6000396000f300606060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630900f01014610067578063445df0ac146100a05780638da5cb5b146100c9578063fdacd5761461011e575b600080fd5b341561007257600080fd5b61009e600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610141565b005b34156100ab57600080fd5b6100b3610224565b6040518082815260200191505060405180910390f35b34156100d457600080fd5b6100dc61022a565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b341561012957600080fd5b61013f600480803590602001909190505061024f565b005b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161415610220578190508073ffffffffffffffffffffffffffffffffffffffff1663fdacd5766001546040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b151561020b57600080fd5b6102c65a03f1151561021c57600080fd5b5050505b5050565b60015481565b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614156102ac57806001819055505b505600a165627a7a72305820a9c628775efbfbc17477a472413c01ee9b33881f550c59d21bee9928835c854b0029",
+      ...>     nonce: 0,
+      ...>     r: 0xAD3733DF250C87556335FFE46C23E34DBAFFDE93097EF92F52C88632A40F0C75,
+      ...>     s: 0x72caddc0371451a58de2ca6ab64e0f586ccdb9465ff54e1c82564940e89291e3,
+      ...>     v: 0x8d,
+      ...>     value: 0
+      ...>   }
+      ...> )
+      iex> changeset.valid?
+      true
+
+  A pending transaction does not have a `gas_price` (Erigon)
+
+      iex> changeset = Explorer.Chain.Transaction.changeset(
+      ...>   %Transaction{},
+      ...>   %{
+      ...>     from_address_hash: "0xe8ddc5c7a2d2f0d7a9798459c0104fdf5e987aca",
+      ...>     gas: 4700000,
       ...>     hash: "0x3a3eb134e6792ce9403ea4188e5e79693de9e4c94e499db132be086400da79e6",
       ...>     input: "0x6060604052341561000f57600080fd5b336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506102db8061005e6000396000f300606060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630900f01014610067578063445df0ac146100a05780638da5cb5b146100c9578063fdacd5761461011e575b600080fd5b341561007257600080fd5b61009e600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610141565b005b34156100ab57600080fd5b6100b3610224565b6040518082815260200191505060405180910390f35b34156100d457600080fd5b6100dc61022a565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b341561012957600080fd5b61013f600480803590602001909190505061024f565b005b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161415610220578190508073ffffffffffffffffffffffffffffffffffffffff1663fdacd5766001546040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b151561020b57600080fd5b6102c65a03f1151561021c57600080fd5b5050505b5050565b60015481565b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614156102ac57806001819055505b505600a165627a7a72305820a9c628775efbfbc17477a472413c01ee9b33881f550c59d21bee9928835c854b0029",
       ...>     nonce: 0,
@@ -448,21 +471,35 @@ defmodule Explorer.Chain.Transaction do
     preload(query, [tt], token_transfers: ^token_transfers_query)
   end
 
-  def decoded_revert_reason(transaction, revert_reason) do
-    case revert_reason do
-      "0x" <> hex_part ->
-        proccess_hex_revert_reason(hex_part, transaction)
+  def decoded_revert_reason(transaction, revert_reason, options \\ []) do
+    hex =
+      case revert_reason do
+        "0x" <> hex_part ->
+          hex_part
 
-      hex_part ->
-        proccess_hex_revert_reason(hex_part, transaction)
-    end
+        hex ->
+          hex
+      end
+
+    process_hex_revert_reason(hex, transaction, options)
   end
 
-  defp proccess_hex_revert_reason(hex_revert_reason, %__MODULE__{to_address: smart_contract, hash: hash}) do
+  defp process_hex_revert_reason(hex_revert_reason, %__MODULE__{to_address: smart_contract, hash: hash}, options) do
     case Integer.parse(hex_revert_reason, 16) do
       {number, ""} ->
         binary_revert_reason = :binary.encode_unsigned(number)
-        decoded_input_data(%Transaction{to_address: smart_contract, hash: hash, input: %{bytes: binary_revert_reason}})
+
+        {result, _, _} =
+          decoded_input_data(
+            %Transaction{
+              to_address: smart_contract,
+              hash: hash,
+              input: %Data{bytes: binary_revert_reason}
+            },
+            options
+          )
+
+        result
 
       _ ->
         hex_revert_reason
@@ -470,87 +507,209 @@ defmodule Explorer.Chain.Transaction do
   end
 
   # Because there is no contract association, we know the contract was not verified
-  def decoded_input_data(%__MODULE__{to_address: nil}), do: {:error, :no_to_address}
-  def decoded_input_data(%__MODULE__{input: %{bytes: bytes}}) when bytes in [nil, <<>>], do: {:error, :no_input_data}
-  def decoded_input_data(%__MODULE__{to_address: %{contract_code: nil}}), do: {:error, :not_a_contract_call}
+  def decoded_input_data(tx, skip_sig_provider? \\ false, options, full_abi_acc \\ %{}, methods_acc \\ %{})
 
-  def decoded_input_data(%__MODULE__{
-        to_address: %{smart_contract: %NotLoaded{}},
-        input: input,
-        hash: hash
-      }) do
-    decoded_input_data(%__MODULE__{
-      to_address: %{smart_contract: nil},
-      input: input,
-      hash: hash
-    })
+  def decoded_input_data(%__MODULE__{to_address: nil}, _, _, full_abi_acc, methods_acc),
+    do: {{:error, :no_to_address}, full_abi_acc, methods_acc}
+
+  def decoded_input_data(%NotLoaded{}, _, _, full_abi_acc, methods_acc),
+    do: {{:error, :not_loaded}, full_abi_acc, methods_acc}
+
+  def decoded_input_data(%__MODULE__{input: %{bytes: bytes}}, _, _, full_abi_acc, methods_acc)
+      when bytes in [nil, <<>>],
+      do: {{:error, :no_input_data}, full_abi_acc, methods_acc}
+
+  if not Application.compile_env(:explorer, :decode_not_a_contract_calls) do
+    def decoded_input_data(%__MODULE__{to_address: %{contract_code: nil}}, _, _, full_abi_acc, methods_acc),
+      do: {{:error, :not_a_contract_call}, full_abi_acc, methods_acc}
   end
 
-  def decoded_input_data(%__MODULE__{
+  def decoded_input_data(
+        %__MODULE__{
+          to_address: %NotLoaded{},
+          input: input,
+          hash: hash
+        },
+        skip_sig_provider?,
+        options,
+        full_abi_acc,
+        methods_acc
+      ) do
+    decoded_input_data(
+      %__MODULE__{
         to_address: %{smart_contract: nil},
-        input: %{bytes: <<method_id::binary-size(4), _::binary>> = data},
+        input: input,
         hash: hash
-      }) do
-    candidates_query =
-      from(
-        contract_method in ContractMethod,
-        where: contract_method.identifier == ^method_id,
-        limit: 1
-      )
+      },
+      skip_sig_provider?,
+      options,
+      full_abi_acc,
+      methods_acc
+    )
+  end
+
+  def decoded_input_data(
+        %__MODULE__{
+          to_address: %{smart_contract: %NotLoaded{}},
+          input: input,
+          hash: hash
+        },
+        skip_sig_provider?,
+        options,
+        full_abi_acc,
+        methods_acc
+      ) do
+    decoded_input_data(
+      %__MODULE__{
+        to_address: %{smart_contract: nil},
+        input: input,
+        hash: hash
+      },
+      skip_sig_provider?,
+      options,
+      full_abi_acc,
+      methods_acc
+    )
+  end
+
+  def decoded_input_data(
+        %__MODULE__{
+          to_address: %{smart_contract: nil},
+          input: %{bytes: <<method_id::binary-size(4), _::binary>> = data} = input,
+          hash: hash
+        },
+        skip_sig_provider?,
+        options,
+        full_abi_acc,
+        methods_acc
+      ) do
+    {methods, methods_acc} =
+      method_id
+      |> check_methods_cache(methods_acc, options)
 
     candidates =
-      candidates_query
-      |> Repo.all()
+      methods
       |> Enum.flat_map(fn candidate ->
-        case do_decoded_input_data(data, %SmartContract{abi: [candidate.abi], address_hash: nil}, hash) do
-          {:ok, _, _, _} = decoded -> [decoded]
+        case do_decoded_input_data(data, %SmartContract{abi: [candidate.abi], address_hash: nil}, hash, options, %{}) do
+          {{:ok, _, _, _} = decoded, _} -> [decoded]
           _ -> []
         end
       end)
 
-    {:error, :contract_not_verified, candidates}
+    {{:error, :contract_not_verified,
+      if(candidates == [], do: decode_function_call_via_sig_provider(input, hash, skip_sig_provider?), else: candidates)},
+     full_abi_acc, methods_acc}
   end
 
-  def decoded_input_data(%__MODULE__{to_address: %{smart_contract: nil}}) do
-    {:error, :contract_not_verified, []}
+  def decoded_input_data(%__MODULE__{to_address: %{smart_contract: nil}}, _, _, full_abi_acc, methods_acc) do
+    {{:error, :contract_not_verified, []}, full_abi_acc, methods_acc}
   end
 
-  def decoded_input_data(%__MODULE__{
-        input: %{bytes: data},
-        to_address: %{smart_contract: smart_contract},
-        hash: hash
-      }) do
-    case do_decoded_input_data(data, smart_contract, hash) do
-      # In some cases transactions use methods of some unpredictadle contracts, so we can try to look up for method in a whole DB
-      {:error, :could_not_decode} ->
-        case decoded_input_data(%__MODULE__{
-               to_address: %{smart_contract: nil},
-               input: %{bytes: data},
-               hash: hash
-             }) do
-          {:error, :contract_not_verified, []} ->
-            {:error, :could_not_decode}
+  def decoded_input_data(
+        %__MODULE__{
+          input: %{bytes: data} = input,
+          to_address: %{smart_contract: smart_contract},
+          hash: hash
+        },
+        skip_sig_provider?,
+        options,
+        full_abi_acc,
+        methods_acc
+      ) do
+    case do_decoded_input_data(data, smart_contract, hash, options, full_abi_acc) do
+      # In some cases transactions use methods of some unpredictable contracts, so we can try to look up for method in a whole DB
+      {{:error, :could_not_decode}, full_abi_acc} ->
+        case decoded_input_data(
+               %__MODULE__{
+                 to_address: %{smart_contract: nil},
+                 input: input,
+                 hash: hash
+               },
+               skip_sig_provider?,
+               options,
+               full_abi_acc,
+               methods_acc
+             ) do
+          {{:error, :contract_not_verified, []}, full_abi_acc, methods_acc} ->
+            {decode_function_call_via_sig_provider_wrapper(input, hash, skip_sig_provider?), full_abi_acc, methods_acc}
 
-          {:error, :contract_not_verified, candidates} ->
-            {:error, :contract_verified, candidates}
+          {{:error, :contract_not_verified, candidates}, full_abi_acc, methods_acc} ->
+            {{:error, :contract_verified, candidates}, full_abi_acc, methods_acc}
 
-          _ ->
-            {:error, :could_not_decode}
+          {_, full_abi_acc, methods_acc} ->
+            {{:error, :could_not_decode}, full_abi_acc, methods_acc}
         end
 
-      output ->
-        output
+      {output, full_abi_acc} ->
+        {output, full_abi_acc, methods_acc}
     end
   end
 
-  defp do_decoded_input_data(data, smart_contract, hash) do
-    full_abi = Chain.combine_proxy_implementation_abi(smart_contract)
+  defp decode_function_call_via_sig_provider_wrapper(input, hash, skip_sig_provider?) do
+    case decode_function_call_via_sig_provider(input, hash, skip_sig_provider?) do
+      [] ->
+        {:error, :could_not_decode}
 
-    with {:ok, {selector, values}} <- find_and_decode(full_abi, data, hash),
-         {:ok, mapping} <- selector_mapping(selector, values, hash),
-         identifier <- Base.encode16(selector.method_id, case: :lower),
-         text <- function_call(selector.function, mapping),
-         do: {:ok, identifier, text, mapping}
+      result ->
+        {:error, :contract_verified, result}
+    end
+  end
+
+  defp do_decoded_input_data(data, smart_contract, hash, options, full_abi_acc) do
+    {full_abi, full_abi_acc} = check_full_abi_cache(smart_contract, full_abi_acc, options)
+
+    {with(
+       {:ok, {selector, values}} <- find_and_decode(full_abi, data, hash),
+       {:ok, mapping} <- selector_mapping(selector, values, hash),
+       identifier <- Base.encode16(selector.method_id, case: :lower),
+       text <- function_call(selector.function, mapping),
+       do: {:ok, identifier, text, mapping}
+     ), full_abi_acc}
+  end
+
+  defp decode_function_call_via_sig_provider(%{bytes: data} = input, hash, skip_sig_provider?) do
+    with true <- SigProviderInterface.enabled?(),
+         false <- skip_sig_provider?,
+         {:ok, result} <- SigProviderInterface.decode_function_call(input),
+         true <- is_list(result),
+         false <- Enum.empty?(result),
+         abi <- [result |> List.first() |> Map.put("outputs", []) |> Map.put("type", "function")],
+         {{:ok, _, _, _} = candidate, _} <-
+           do_decoded_input_data(data, %SmartContract{abi: abi, address_hash: nil}, hash, [], %{}) do
+      [candidate]
+    else
+      _ ->
+        []
+    end
+  end
+
+  defp check_methods_cache(method_id, methods_acc, options) do
+    if Map.has_key?(methods_acc, method_id) do
+      {methods_acc[method_id], methods_acc}
+    else
+      candidates_query =
+        from(
+          contract_method in ContractMethod,
+          where: contract_method.identifier == ^method_id,
+          limit: 1
+        )
+
+      result =
+        candidates_query
+        |> Chain.select_repo(options).all()
+
+      {result, Map.put(methods_acc, method_id, result)}
+    end
+  end
+
+  defp check_full_abi_cache(%{address_hash: address_hash} = smart_contract, full_abi_acc, options) do
+    if !is_nil(address_hash) && Map.has_key?(full_abi_acc, address_hash) do
+      {full_abi_acc[address_hash], full_abi_acc}
+    else
+      full_abi = Chain.combine_proxy_implementation_abi(smart_contract, options)
+
+      {full_abi, Map.put(full_abi_acc, address_hash, full_abi)}
+    end
   end
 
   def get_method_name(
@@ -561,15 +720,19 @@ defmodule Explorer.Chain.Transaction do
     if transaction.created_contract_address_hash do
       nil
     else
-      case Transaction.decoded_input_data(%__MODULE__{
-             to_address: %{smart_contract: nil},
-             input: transaction.input,
-             hash: transaction.hash
-           }) do
-        {:error, :contract_not_verified, [{:ok, _method_id, decoded_func, _}]} ->
+      case decoded_input_data(
+             %__MODULE__{
+               to_address: %{smart_contract: nil},
+               input: transaction.input,
+               hash: transaction.hash
+             },
+             true,
+             []
+           ) do
+        {{:error, :contract_not_verified, [{:ok, _method_id, decoded_func, _}]}, _, _} ->
           parse_method_name(decoded_func)
 
-        {:error, :contract_not_verified, []} ->
+        {{:error, :contract_not_verified, []}, _, _} ->
           "0x" <> Base.encode16(method_id, case: :lower)
 
         _ ->
@@ -608,8 +771,15 @@ defmodule Explorer.Chain.Transaction do
 
     {:ok, result}
   rescue
-    _ ->
-      Logger.warn(fn -> ["Could not decode input data for transaction: ", Hash.to_iodata(hash)] end)
+    e ->
+      Logger.warn(fn ->
+        [
+          "Could not decode input data for transaction: ",
+          Hash.to_iodata(hash),
+          Exception.format(:error, e, __STACKTRACE__)
+        ]
+      end)
+
       {:error, :could_not_decode}
   end
 
@@ -620,8 +790,15 @@ defmodule Explorer.Chain.Transaction do
 
     {:ok, mapping}
   rescue
-    _ ->
-      Logger.warn(fn -> ["Could not decode input data for transaction: ", Hash.to_iodata(hash)] end)
+    e ->
+      Logger.warn(fn ->
+        [
+          "Could not decode input data for transaction: ",
+          Hash.to_iodata(hash),
+          Exception.format(:error, e, __STACKTRACE__)
+        ]
+      end)
+
       {:error, :could_not_decode}
   end
 
@@ -629,6 +806,25 @@ defmodule Explorer.Chain.Transaction do
   Produces a list of queries starting from the given one and adding filters for
   transactions that are linked to the given address_hash through a direction.
   """
+  def matching_address_queries_list(query, :from, address_hashes) when is_list(address_hashes) do
+    [where(query, [t], t.from_address_hash in ^address_hashes)]
+  end
+
+  def matching_address_queries_list(query, :to, address_hashes) when is_list(address_hashes) do
+    [
+      where(query, [t], t.to_address_hash in ^address_hashes),
+      where(query, [t], t.created_contract_address_hash in ^address_hashes)
+    ]
+  end
+
+  def matching_address_queries_list(query, _direction, address_hashes) when is_list(address_hashes) do
+    [
+      where(query, [t], t.from_address_hash in ^address_hashes),
+      where(query, [t], t.to_address_hash in ^address_hashes),
+      where(query, [t], t.created_contract_address_hash in ^address_hashes)
+    ]
+  end
+
   def matching_address_queries_list(query, :from, address_hash) do
     [where(query, [t], t.from_address_hash == ^address_hash)]
   end
@@ -652,7 +848,7 @@ defmodule Explorer.Chain.Transaction do
     where(query, [t], not is_nil(t.block_number))
   end
 
-  def not_dropped_or_replaced_transacions(query) do
+  def not_dropped_or_replaced_transactions(query) do
     where(query, [t], is_nil(t.error) or t.error != "dropped/replaced")
   end
 

@@ -3,7 +3,7 @@ defmodule Explorer.ExchangeRates.Source.CoinMarketCap do
   Adapter for fetching exchange rates from https://coinmarketcap.com/api/
   """
 
-  alias Explorer.{Chain, ExchangeRates}
+  alias Explorer.Chain
   alias Explorer.ExchangeRates.{Source, Token}
 
   import Source, only: [to_decimal: 1]
@@ -55,8 +55,18 @@ defmodule Explorer.ExchangeRates.Source.CoinMarketCap do
   def source_url do
     coin = Explorer.coin()
     symbol = if coin, do: String.upcase(Explorer.coin()), else: nil
+    coin_id = coin_id()
 
-    if symbol, do: "#{api_quotes_latest_url()}?symbol=#{symbol}&CMC_PRO_API_KEY=#{api_key()}", else: nil
+    cond do
+      coin_id ->
+        "#{api_quotes_latest_url()}?id=#{coin_id}&CMC_PRO_API_KEY=#{api_key()}"
+
+      symbol ->
+        "#{api_quotes_latest_url()}?symbol=#{symbol}&CMC_PRO_API_KEY=#{api_key()}"
+
+      true ->
+        nil
+    end
   end
 
   @impl Source
@@ -81,7 +91,11 @@ defmodule Explorer.ExchangeRates.Source.CoinMarketCap do
   end
 
   defp api_key do
-    Application.get_env(:explorer, ExchangeRates)[:coinmarketcap_api_key]
+    config(:api_key)
+  end
+
+  defp coin_id do
+    config(:coin_id)
   end
 
   defp get_token_properties(market_data) do

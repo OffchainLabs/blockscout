@@ -1,6 +1,7 @@
 import $ from 'jquery'
 import { addChainToMM } from '../lib/add_chain_to_mm'
 import * as analytics from '../lib/analytics'
+import { commonPath } from '../lib/path_helper'
 
 analytics.init()
 
@@ -97,6 +98,7 @@ $('.send-public-tag-request-button').click((_event) => {
     goal: $('#public_tags_request_is_owner_true').prop('checked') ? 'Add tags' : 'Incorrect public tag',
     public_tag: $('#public_tags_request_tags').val(),
     smart_contracts: $('*[id=public_tags_request_addresses]').map((_i, el) => {
+      // @ts-ignore
       return el.value
     }).get(),
     reason: $('#public_tags_request_additional_comment').val()
@@ -109,6 +111,7 @@ $(document).ready(() => {
   let timer
   const waitTime = 500
   const observer = new MutationObserver((mutations) => {
+    // @ts-ignore
     if (mutations[0].target.hidden) {
       return
     }
@@ -125,9 +128,11 @@ $(document).ready(() => {
       analytics.trackEvent(eventName, eventProperties)
 
       eventName = 'Search list displays at the nav bar'
+      // @ts-ignore
       eventProperties = {
         resultsNumber: $results.length,
         results: $results.map((_i, el) => {
+          // @ts-ignore
           return el.children[1].innerText
         })
       }
@@ -156,6 +161,7 @@ $(document).ready(() => {
 $(document).click(function (event) {
   const clickover = $(event.target)
   const _opened = $('.navbar-collapse').hasClass('show')
+  // @ts-ignore
   if (_opened === true && $('.navbar').find(clickover).length < 1) {
     $('.navbar-toggler').click()
   }
@@ -170,7 +176,7 @@ const search = (value) => {
   analytics.trackEvent(eventName, eventProperties)
 
   if (value) {
-    window.location.href = `/search?q=${value}`
+    window.location.href = `${commonPath}/search?q=${value}`
   }
 }
 
@@ -194,6 +200,7 @@ $('.main-search-autocomplete').on('keyup', function (event) {
       }
     })
     if (!selected) {
+      // @ts-ignore
       search(event.target.value)
     }
   }

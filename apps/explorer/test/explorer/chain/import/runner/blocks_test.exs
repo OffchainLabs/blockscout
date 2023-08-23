@@ -90,6 +90,8 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
 
       assert count(Address.CurrentTokenBalance) == 1
 
+      insert(:block, number: block_number, consensus: true)
+
       assert {:ok,
               %{
                 delete_address_current_token_balances: [
@@ -135,6 +137,8 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
       assert count(Address.CurrentTokenBalance) == 1
 
       previous_block_number = block_number - 1
+
+      insert(:block, number: block_number, consensus: true)
 
       assert {:ok,
               %{
@@ -187,6 +191,8 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
       # Token must exist with non-`nil` `holder_count` for `blocks_update_token_holder_counts` to update
       update_holder_count!(token_contract_address_hash, 0)
 
+      insert(:block, number: block_number, consensus: true)
+
       block_params = params_for(:block, hash: block_hash, miner_hash: miner_hash, number: block_number, consensus: true)
 
       %Ecto.Changeset{valid?: true, changes: block_changes} = Block.changeset(%Block{}, block_params)
@@ -218,6 +224,8 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
 
       # Token must exist with non-`nil` `holder_count` for `blocks_update_token_holder_counts` to update
       update_holder_count!(token_contract_address_hash, 1)
+
+      insert(:block, number: block_number, consensus: true)
 
       block_params = params_for(:block, hash: block_hash, miner_hash: miner_hash, number: block_number, consensus: true)
 
@@ -264,7 +272,7 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
     end
 
     # Regression test for https://github.com/poanetwork/blockscout/issues/1644
-    test "discards neighbouring blocks if they aren't related to the current one because of reorg and/or import timeout",
+    test "discards neighboring blocks if they aren't related to the current one because of reorg and/or import timeout",
          %{consensus_block: %{number: block_number, hash: block_hash, miner_hash: miner_hash}, options: options} do
       insert(:block, %{number: block_number, hash: block_hash})
       old_block1 = params_for(:block, miner_hash: miner_hash, parent_hash: block_hash, number: block_number + 1)
@@ -330,8 +338,18 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
          %{consensus_block: %{number: block_number} = block, options: options} do
       block1 = params_for(:block, consensus: true, miner_hash: insert(:address).hash)
 
-      run_block_consensus_change(block, false, options)
-      run_block_consensus_change(block1, true, options)
+      block2 =
+        params_for(:block,
+          consensus: true,
+          miner_hash: insert(:address).hash,
+          parent_hash: block1.hash,
+          number: block.number + 1
+        )
+
+      insert_block(block, options)
+      insert_block(block2, options)
+
+      Process.sleep(100)
 
       assert %{from_number: ^block_number, to_number: ^block_number} = Repo.one(MissingBlockRange)
     end
@@ -344,12 +362,31 @@ defmodule Explorer.Chain.Import.Runner.BlocksTest do
       %Ecto.Changeset{valid?: true, changes: block_changes} = Block.changeset(%Block{}, new_block)
       %Ecto.Changeset{valid?: true, changes: block_changes1} = Block.changeset(%Block{}, new_block1)
 
-      result =
-        Multi.new()
-        |> Blocks.run([block_changes, block_changes1], options)
-        |> Repo.transaction()
+      Multi.new()
+      |> Blocks.run([block_changes, block_changes1], options)
+      |> Repo.transaction()
 
       assert %{block_number: ^number, block_hash: ^hash} = Repo.one(PendingBlockOperation)
+    end
+  end
+
+  describe "lose_consensus/5" do
+    test "loses consensus only for consensus=true blocks" do
+      insert(:block, consensus: true, number: 0)
+      insert(:block, consensus: true, number: 1)
+      insert(:block, consensus: false, number: 2)
+
+      new_block0 = params_for(:block, miner_hash: insert(:address).hash, number: 0)
+      new_block1 = params_for(:block, miner_hash: insert(:address).hash, parent_hash: new_block0.hash, number: 1)
+
+      %Ecto.Changeset{valid?: true, changes: new_block1_changes} = Block.changeset(%Block{}, new_block1)
+
+      opts = %{
+        timeout: 60_000,
+        timestamps: %{updated_at: DateTime.utc_now()}
+      }
+
+      assert {:ok, [{0, _}, {1, _}]} = Blocks.lose_consensus(Repo, [], [1], [new_block1_changes], opts)
     end
   end
 

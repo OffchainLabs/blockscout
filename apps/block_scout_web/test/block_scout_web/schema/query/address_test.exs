@@ -18,7 +18,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{"hash" => to_string(address.hash)}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -45,7 +45,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{"hash" => to_string(address.hash)}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -78,7 +78,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{"hash" => to_string(address.hash)}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -110,7 +110,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{"hash" => to_string(address.hash)}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert %{"errors" => [error]} = json_response(conn, 200)
       assert error["message"] =~ ~s(Address not found.)
@@ -127,7 +127,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert %{"errors" => [error]} = json_response(conn, 200)
       assert error["message"] == ~s(In argument "hash": Expected type "AddressHash!", found null.)
@@ -144,7 +144,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
 
       variables = %{"hash" => "someInvalidHash"}
 
-      conn = get(conn, "/graphql", query: query, variables: variables)
+      conn = get(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert %{"errors" => [error]} = json_response(conn, 200)
       assert error["message"] =~ ~s(Argument "hash" has invalid value)
@@ -193,7 +193,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 1
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -251,7 +251,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 1
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -304,7 +304,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 3
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       %{
         "data" => %{
@@ -366,7 +366,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 3
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       %{
         "data" => %{
@@ -410,7 +410,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 67
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert %{"errors" => [error1, error2, error3]} = json_response(conn, 200)
       assert error1["message"] =~ ~s(Field transactions is too complex)
@@ -419,7 +419,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
     end
 
     test "with 'last' and 'count' arguments", %{conn: conn} do
-      # "`last: N` must always be acompanied by either a `before:` argument to
+      # "`last: N` must always be accompanied by either a `before:` argument to
       # the query, or an explicit `count:` option to the `from_query` call.
       # Otherwise it is impossible to derive the required offset."
       # https://hexdocs.pm/absinthe_relay/Absinthe.Relay.Connection.html#from_query/4
@@ -465,7 +465,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "count" => 9
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       %{
         "data" => %{
@@ -525,7 +525,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "first" => 3
       }
 
-      conn = post(conn, "/graphql", query: query1, variables: variables1)
+      conn = post(conn, "/api/v1/graphql", query: query1, variables: variables1)
 
       %{"data" => %{"address" => %{"transactions" => page1}}} = json_response(conn, 200)
 
@@ -564,7 +564,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "after" => last_cursor_page1
       }
 
-      conn = post(conn, "/graphql", query: query2, variables: variables2)
+      conn = post(conn, "/api/v1/graphql", query: query2, variables: variables2)
 
       %{"data" => %{"address" => %{"transactions" => page2}}} = json_response(conn, 200)
 
@@ -583,7 +583,7 @@ defmodule BlockScoutWeb.Schema.Query.AddressTest do
         "after" => last_cursor_page2
       }
 
-      conn = post(conn, "/graphql", query: query2, variables: variables3)
+      conn = post(conn, "/api/v1/graphql", query: query2, variables: variables3)
 
       %{"data" => %{"address" => %{"transactions" => page3}}} = json_response(conn, 200)
 

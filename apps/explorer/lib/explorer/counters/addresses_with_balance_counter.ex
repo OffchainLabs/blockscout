@@ -7,7 +7,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
 
   use GenServer
 
-  alias Explorer.Chain
+  alias Explorer.Chain.Address.Counters
 
   @table :addresses_with_balance_counter
 
@@ -29,7 +29,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   config = Application.compile_env(:explorer, Explorer.Counters.AddressesWithBalanceCounter)
   @enable_consolidation Keyword.get(config, :enable_consolidation)
 
-  @update_interval_in_seconds Keyword.get(config, :update_interval_in_seconds)
+  @update_interval_in_milliseconds Keyword.get(config, :update_interval_in_milliseconds)
 
   @doc """
   Starts a process to periodically update the counter of the token holders.
@@ -58,7 +58,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   end
 
   defp schedule_next_consolidation do
-    Process.send_after(self(), :consolidate, :timer.seconds(@update_interval_in_seconds))
+    Process.send_after(self(), :consolidate, @update_interval_in_milliseconds)
   end
 
   @doc """
@@ -104,7 +104,7 @@ defmodule Explorer.Counters.AddressesWithBalanceCounter do
   Consolidates the info by populating the `:ets` table with the current database information.
   """
   def consolidate do
-    counter = Chain.count_addresses_with_balance()
+    counter = Counters.count_addresses_with_balance()
 
     insert_counter({cache_key(), counter})
   end
