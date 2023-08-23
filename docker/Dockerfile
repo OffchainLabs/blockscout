@@ -43,6 +43,7 @@ ADD apps ./apps
 ADD config ./config
 ADD rel ./rel
 ADD *.exs ./
+ADD init ./init
 
 RUN apk add --update nodejs npm
 
