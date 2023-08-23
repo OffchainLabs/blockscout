@@ -48,13 +48,12 @@ ADD rel ./rel
 ADD *.exs ./
 ADD init ./init
 
-COPY --from=node /usr/lib /usr/lib
-COPY --from=node /usr/local/lib /usr/local/lib
-COPY --from=node /usr/local/include /usr/local/include
-COPY --from=node /usr/local/bin /usr/local/bin
+COPY --from=node /usr/local/bin/node /usr/local/bin/
+COPY --from=node /usr/local/bin/npm /usr/local/bin/
+COPY --from=node /usr/local/bin/npx /usr/local/bin/
 
 # Run forderground build and phoenix digest
-RUN mix compile && npm install npm@latest
+RUN mix compile
 
 # Add blockscout npm deps
 RUN cd apps/block_scout_web/assets/ && \
@@ -94,10 +93,9 @@ RUN apk --no-cache --update add jq
 
 WORKDIR /app
 
-COPY --from=node /usr/lib /usr/lib
-COPY --from=node /usr/local/lib /usr/local/lib
-COPY --from=node /usr/local/include /usr/local/include
-COPY --from=node /usr/local/bin /usr/local/bin
+COPY --from=node /usr/local/bin/node /usr/local/bin/
+COPY --from=node /usr/local/bin/npm /usr/local/bin/
+COPY --from=node /usr/local/bin/npx /usr/local/bin/
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
