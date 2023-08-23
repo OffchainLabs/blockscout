@@ -32,7 +32,7 @@ defmodule EthereumJSONRPC.Block do
           base_fee_per_gas: non_neg_integer(),
           l1_number: non_neg_integer(),
           send_count: non_neg_integer(),
-          send_root: EthereumJSONRPC.hash()
+          send_root: EthereumJSONRPC.hash(),
           withdrawals_root: EthereumJSONRPC.hash()
         }
 
