@@ -1,20 +1,15 @@
 import Config
 
-# Do not print debug messages in production
-
-config :logger, :console, level: :info
+# DO NOT make it `:debug` or all Ecto logs will be shown for indexer
+config :logger, :console, level: :debug
 
 config :logger, :ecto,
-  level: :info,
-  path: Path.absname("logs/prod/ecto.log"),
-  rotate: %{max_bytes: 52_428_800, keep: 19}
+  level: :debug,
+  path: Path.absname("logs/dev/ecto.log")
 
-config :logger, :error,
-  path: Path.absname("logs/prod/error.log"),
-  rotate: %{max_bytes: 52_428_800, keep: 19}
+config :logger, :error, path: Path.absname("logs/dev/error.log")
 
 config :logger, :account,
-  level: :info,
-  path: Path.absname("logs/prod/account.log"),
-  rotate: %{max_bytes: 52_428_800, keep: 19},
+  level: :debug,
+  path: Path.absname("logs/dev/account.log"),
   metadata_filter: [fetcher: :account]
