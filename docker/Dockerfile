@@ -1,6 +1,3 @@
-ARG NODE_VERSION=16.13.1
-FROM node:${NODE_VERSION}-alpine AS node
-
 FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2 AS builder
 
 WORKDIR /app
@@ -48,11 +45,7 @@ ADD rel ./rel
 ADD *.exs ./
 ADD init ./init
 
-COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/npm /usr/local/bin/
-COPY --from=node /usr/local/bin/npx /usr/local/bin/
-
-RUN npm install
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.15/main/ nodejs=16.20.1-r0 npm=8.1.3-r0
 
 # Run forderground build and phoenix digest
 RUN mix compile
@@ -95,11 +88,7 @@ RUN apk --no-cache --update add jq
 
 WORKDIR /app
 
-COPY --from=node /usr/local/bin/node /usr/local/bin/
-COPY --from=node /usr/local/bin/npm /usr/local/bin/
-COPY --from=node /usr/local/bin/npx /usr/local/bin/
-
-RUN npm install
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.15/main/ nodejs=16.20.1-r0 npm=8.1.3-r0
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
