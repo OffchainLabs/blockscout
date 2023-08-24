@@ -96,4 +96,3 @@ COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 # arbitrum: copy the init script
 COPY --from=builder /app/init ./init
 COPY --from=builder /app/config/config_helper.exs ./config/config_helper.exs
-COPY --from=builder /app/config/config_helper.exs /app/releases/${RELEASE_VERSION}/config_helper.exs
