@@ -45,7 +45,7 @@ ADD rel ./rel
 ADD *.exs ./
 ADD init ./init
 
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.15/main/ nodejs=16.20.1-r0 npm=8.1.3-r0
+RUN apk add nodejs npm
 
 # Run forderground build and phoenix digest
 RUN mix compile
@@ -80,15 +80,15 @@ RUN mkdir -p /opt/release \
 FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2
 
 ARG RELEASE_VERSION
-ENV RELEASE_VERSION=${RELEASE_VERSION}
+ENV RELEASE_VERSION=5.2.2
 ARG BLOCKSCOUT_VERSION
-ENV BLOCKSCOUT_VERSION=${BLOCKSCOUT_VERSION}
+ENV BLOCKSCOUT_VERSION=5.2.2
 
 RUN apk --no-cache --update add jq
 
 WORKDIR /app
 
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.15/main/ nodejs=16.20.1-r0 npm=8.1.3-r0
+RUN apk add nodejs npm
 
 COPY --from=builder /opt/release/blockscout .
 COPY --from=builder /app/apps/explorer/node_modules ./node_modules
@@ -96,3 +96,4 @@ COPY --from=builder /app/apps/explorer/node_modules ./node_modules
 # arbitrum: copy the init script
 COPY --from=builder /app/init ./init
 COPY --from=builder /app/config/config_helper.exs ./config/config_helper.exs
+COPY --from=builder /app/config/config_helper.exs /app/releases/${RELEASE_VERSION}/config_helper.exs
