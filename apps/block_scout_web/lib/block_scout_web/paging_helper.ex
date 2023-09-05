@@ -1,6 +1,6 @@
 defmodule BlockScoutWeb.PagingHelper do
   @moduledoc """
-    Helper for fetching filters and other url query paramters
+    Helper for fetching filters and other url query parameters
   """
   import Explorer.Chain, only: [string_to_transaction_hash: 1]
   alias Explorer.PagingOptions
@@ -127,13 +127,61 @@ defmodule BlockScoutWeb.PagingHelper do
 
   def delete_parameters_from_next_page_params(params) when is_map(params) do
     params
-    |> Map.delete("block_hash_or_number")
-    |> Map.delete("transaction_hash")
-    |> Map.delete("address_hash")
-    |> Map.delete("type")
-    |> Map.delete("method")
-    |> Map.delete("filter")
+    |> Map.drop([
+      "block_hash_or_number",
+      "transaction_hash",
+      "address_hash",
+      "type",
+      "method",
+      "filter",
+      "token_address_hash",
+      "q",
+      "sort",
+      "order"
+    ])
   end
 
   def delete_parameters_from_next_page_params(_), do: nil
+
+  def current_filter(%{"filter" => "solidity"}) do
+    [filter: :solidity]
+  end
+
+  def current_filter(%{"filter" => "vyper"}) do
+    [filter: :vyper]
+  end
+
+  def current_filter(%{"filter" => "yul"}) do
+    [filter: :yul]
+  end
+
+  def current_filter(_), do: []
+
+  def search_query(%{"search" => ""}), do: []
+
+  def search_query(%{"search" => search_string}) do
+    [search: search_string]
+  end
+
+  def search_query(%{"q" => ""}), do: []
+
+  def search_query(%{"q" => search_string}) do
+    [search: search_string]
+  end
+
+  def search_query(_), do: []
+
+  def tokens_sorting(%{"sort" => sort_field, "order" => order}) do
+    [sorting: do_tokens_sorting(sort_field, order)]
+  end
+
+  def tokens_sorting(_), do: []
+
+  defp do_tokens_sorting("fiat_value", "asc"), do: [asc_nulls_first: :fiat_value]
+  defp do_tokens_sorting("fiat_value", "desc"), do: [desc_nulls_last: :fiat_value]
+  defp do_tokens_sorting("holder_count", "asc"), do: [asc_nulls_first: :holder_count]
+  defp do_tokens_sorting("holder_count", "desc"), do: [desc_nulls_last: :holder_count]
+  defp do_tokens_sorting("circulating_market_cap", "asc"), do: [asc_nulls_first: :circulating_market_cap]
+  defp do_tokens_sorting("circulating_market_cap", "desc"), do: [desc_nulls_last: :circulating_market_cap]
+  defp do_tokens_sorting(_, _), do: []
 end

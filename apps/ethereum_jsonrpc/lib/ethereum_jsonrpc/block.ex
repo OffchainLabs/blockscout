@@ -33,6 +33,7 @@ defmodule EthereumJSONRPC.Block do
           l1_number: non_neg_integer(),
           send_count: non_neg_integer(),
           send_root: EthereumJSONRPC.hash()
+
         }
 
   @typedoc """
@@ -445,6 +446,73 @@ defmodule EthereumJSONRPC.Block do
       #send_root: send_root
     }
   end
+
+  @doc """
+  Get `t:EthereumJSONRPC.Withdrawals.elixir/0` from `t:elixir/0`.
+
+      iex> EthereumJSONRPC.Block.elixir_to_withdrawals(
+      ...>   %{
+      ...>     "baseFeePerGas" => 7,
+      ...>     "difficulty" => 0,
+      ...>     "extraData" => "0x",
+      ...>     "gasLimit" => 7_009_844,
+      ...>     "gasUsed" => 0,
+      ...>     "hash" => "0xc0b72358464dc55cb51c990360d94809e40f291603a7664d55cf83f87edb799d",
+      ...>     "logsBloom" => "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      ...>     "miner" => "0xe7c180eada8f60d63e9671867b2e0ca2649207a8",
+      ...>     "mixHash" => "0x9cc5c22d51f47caf700636f629e0765a5fe3388284682434a3717d099960681a",
+      ...>     "nonce" => "0x0000000000000000",
+      ...>     "number" => 541,
+      ...>     "parentHash" => "0x9bc27f8db423bea352a32b819330df307dd351da71f3b3f8ac4ad56856c1e053",
+      ...>     "receiptsRoot" => "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+      ...>     "sha3Uncles" => "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      ...>     "size" => 1107,
+      ...>     "stateRoot" => "0x9de54b38595b4b8baeece667ae1f7bec8cfc814a514248985e3d98c91d331c71",
+      ...>     "timestamp" => Timex.parse!("2022-12-15T21:06:15Z", "{ISO:Extended:Z}"),
+      ...>     "totalDifficulty" => 1,
+      ...>     "transactions" => [],
+      ...>     "transactionsRoot" => "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+      ...>     "uncles" => [],
+      ...>     "withdrawals" => [
+      ...>       %{
+      ...>         "address" => "0x388ea662ef2c223ec0b047d41bf3c0f362142ad5",
+      ...>         "amount" => 4_040_000_000_000,
+      ...>         "blockHash" => "0x7f035c5f3c0678250853a1fde6027def7cac1812667bd0d5ab7ccb94eb8b6f3a",
+      ...>         "index" => 3867,
+      ...>         "validatorIndex" => 1721
+      ...>       },
+      ...>       %{
+      ...>         "address" => "0x388ea662ef2c223ec0b047d41bf3c0f362142ad5",
+      ...>         "amount" => 4_040_000_000_000,
+      ...>         "blockHash" => "0x7f035c5f3c0678250853a1fde6027def7cac1812667bd0d5ab7ccb94eb8b6f3a",
+      ...>         "index" => 3868,
+      ...>         "validatorIndex" => 1771
+      ...>       }
+      ...>     ],
+      ...>     "withdrawalsRoot" => "0x23e926286a20cba56ee0fcf0eca7aae44f013bd9695aaab58478e8d69b0c3d68"
+      ...>   }
+      ...> )
+      [
+        %{
+          "address" => "0x388ea662ef2c223ec0b047d41bf3c0f362142ad5",
+          "amount" => 4040000000000,
+          "blockHash" => "0x7f035c5f3c0678250853a1fde6027def7cac1812667bd0d5ab7ccb94eb8b6f3a",
+          "index" => 3867,
+          "validatorIndex" => 1721
+        },
+        %{
+          "address" => "0x388ea662ef2c223ec0b047d41bf3c0f362142ad5",
+          "amount" => 4040000000000,
+          "blockHash" => "0x7f035c5f3c0678250853a1fde6027def7cac1812667bd0d5ab7ccb94eb8b6f3a",
+          "index" => 3868,
+          "validatorIndex" => 1771
+        }
+      ]
+
+  """
+  @spec elixir_to_withdrawals(elixir) :: Withdrawals.elixir()
+  def elixir_to_withdrawals(%{"withdrawals" => withdrawals}), do: withdrawals
+  def elixir_to_withdrawals(_), do: []
 
   @doc """
   Get `t:EthereumJSONRPC.Transactions.elixir/0` from `t:elixir/0`

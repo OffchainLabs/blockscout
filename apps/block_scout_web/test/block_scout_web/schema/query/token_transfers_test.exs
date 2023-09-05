@@ -33,7 +33,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
         "first" => 1
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -86,7 +86,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
         "first" => 10
       }
 
-      conn = post(conn, "/graphql", query: query, variables: variables)
+      conn = post(conn, "/api/v1/graphql", query: query, variables: variables)
 
       assert json_response(conn, 200) == %{
                "data" => %{
@@ -121,7 +121,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
 
       response1 =
         conn
-        |> post("/graphql", query: query1, variables: variables1)
+        |> post("/api/v1/graphql", query: query1, variables: variables1)
         |> json_response(200)
 
       %{"errors" => [response1_error1, response1_error2]} = response1
@@ -150,7 +150,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
 
       response2 =
         conn
-        |> post("/graphql", query: query2, variables: variables2)
+        |> post("/api/v1/graphql", query: query2, variables: variables2)
         |> json_response(200)
 
       %{"errors" => [response2_error1, response2_error2]} = response2
@@ -159,7 +159,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
     end
 
     test "with 'last' and 'count' arguments", %{conn: conn} do
-      # "`last: N` must always be acompanied by either a `before:` argument to
+      # "`last: N` must always be accompanied by either a `before:` argument to
       # the query, or an explicit `count:` option to the `from_query` call.
       # Otherwise it is impossible to derive the required offset."
       # https://hexdocs.pm/absinthe_relay/Absinthe.Relay.Connection.html#from_query/4
@@ -212,7 +212,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
 
       [token_transfer] =
         conn
-        |> post("/graphql", query: query, variables: variables)
+        |> post("/api/v1/graphql", query: query, variables: variables)
         |> json_response(200)
         |> get_in(["data", "token_transfers", "edges"])
 
@@ -264,7 +264,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
         "first" => 1
       }
 
-      conn = post(conn, "/graphql", query: query1, variables: variables1)
+      conn = post(conn, "/api/v1/graphql", query: query1, variables: variables1)
 
       %{"data" => %{"token_transfers" => page1}} = json_response(conn, 200)
 
@@ -300,7 +300,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
         "after" => last_cursor_page1
       }
 
-      conn = post(conn, "/graphql", query: query2, variables: variables2)
+      conn = post(conn, "/api/v1/graphql", query: query2, variables: variables2)
 
       %{"data" => %{"token_transfers" => page2}} = json_response(conn, 200)
 
@@ -319,7 +319,7 @@ defmodule BlockScoutWeb.Schema.Query.TokenTransfersTest do
         "after" => last_cursor_page2
       }
 
-      conn = post(conn, "/graphql", query: query2, variables: variables3)
+      conn = post(conn, "/api/v1/graphql", query: query2, variables: variables3)
 
       %{"data" => %{"token_transfers" => page3}} = json_response(conn, 200)
 

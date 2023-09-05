@@ -18,7 +18,7 @@ defmodule BlockScoutWeb.API.RPC.RPCTranslator do
   import Plug.Conn
   import Phoenix.Controller, only: [put_view: 2]
 
-  alias BlockScoutWeb.AccessHelpers
+  alias BlockScoutWeb.AccessHelper
   alias BlockScoutWeb.API.APILogger
   alias BlockScoutWeb.API.RPC.RPCView
   alias Phoenix.Controller
@@ -29,13 +29,12 @@ defmodule BlockScoutWeb.API.RPC.RPCTranslator do
   end
 
   def call(%Conn{params: %{"module" => module, "action" => action}} = conn, translations) do
-    with true <- valid_api_request_path(conn),
+    with {:valid_api_request, true} <- {:valid_api_request, valid_api_request_path(conn)},
          {:ok, {controller, write_actions}} <- translate_module(translations, module),
          {:ok, action} <- translate_action(action),
          true <- action_accessed?(action, write_actions),
-         :ok <- AccessHelpers.check_rate_limit(conn),
+         :ok <- AccessHelper.check_rate_limit(conn),
          {:ok, conn} <- call_controller(conn, controller, action) do
-      APILogger.log(conn)
       conn
     else
       {:error, :no_action} ->
@@ -46,7 +45,9 @@ defmodule BlockScoutWeb.API.RPC.RPCTranslator do
         |> halt()
 
       {:error, error} ->
-        Logger.error(fn -> ["Error while calling RPC action", inspect(error)] end)
+        APILogger.error(fn ->
+          ["Error while calling RPC action", inspect(error, limit: :infinity, printable_limit: :infinity)]
+        end)
 
         conn
         |> put_status(500)
@@ -55,7 +56,14 @@ defmodule BlockScoutWeb.API.RPC.RPCTranslator do
         |> halt()
 
       :rate_limit_reached ->
-        AccessHelpers.handle_rate_limit_deny(conn)
+        AccessHelper.handle_rate_limit_deny(conn)
+
+      {:valid_api_request, false} ->
+        conn
+        |> put_status(404)
+        |> put_view(RPCView)
+        |> Controller.render(:error, error: "Not found")
+        |> halt()
 
       _ ->
         conn
@@ -118,7 +126,8 @@ defmodule BlockScoutWeb.API.RPC.RPCTranslator do
   end
 
   defp valid_api_request_path(conn) do
-    if conn.request_path == "/api" || conn.request_path == "/api/v1" do
+    if conn.request_path == "/api" || conn.request_path == "/api/" || conn.request_path == "/api/v1" ||
+         conn.request_path == "/api/v1/" do
       true
     else
       false
