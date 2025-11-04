@@ -183,6 +183,9 @@ defmodule EthereumJSONRPC.Log do
     end
   end
 
+  defp entry_to_elixir(_) do
+      {:ignore, :ignore}
+
   defp put_topics(params, topics) when is_map(params) and is_list(topics) do
     params
     |> Map.put(:first_topic, Enum.at(topics, 0))
