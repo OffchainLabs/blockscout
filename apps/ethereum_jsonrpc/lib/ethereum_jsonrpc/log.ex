@@ -185,6 +185,7 @@ defmodule EthereumJSONRPC.Log do
 
   defp entry_to_elixir(_) do
       {:ignore, :ignore}
+  end
 
   defp put_topics(params, topics) when is_map(params) and is_list(topics) do
     params
