@@ -2,11 +2,10 @@ FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2 AS builder
 
 WORKDIR /app
 
-RUN apk --no-cache --update add alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file gcompat 
+RUN apk --no-cache --update add \
+    alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file gcompat libstdc++ curl ca-certificates git make bash
 
-ENV PORT=4000 \
-    MIX_ENV="prod" \
-    SECRET_KEY_BASE="RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5"
+ENV SECRET_KEY_BASE="RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5"
 
 RUN apk --update add libstdc++ curl ca-certificates gcompat
 
@@ -35,9 +34,11 @@ ADD apps/explorer/mix.exs ./apps/explorer/
 ADD apps/ethereum_jsonrpc/mix.exs ./apps/ethereum_jsonrpc/
 ADD apps/indexer/mix.exs ./apps/indexer/
 
+ENV MIX_ENV="prod"
 ENV MIX_HOME=/opt/mix
+RUN ls _build
 RUN mix local.hex --force
-RUN mix do deps.get, local.rebar --force, deps.compile
+RUN mix do deps.get, local.rebar --force, deps.compile --skip-umbrella-children
 
 ADD apps ./apps
 ADD config ./config
@@ -67,14 +68,14 @@ RUN cd /app/apps/explorer/ && \
     apk --update del --force-broken-world alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 \
     || echo failed removing apks
 
-RUN apk add --update git make 
+RUN apk add --update git make
 
 RUN export "CFLAGS=-I/usr/local/include -L/usr/local/lib" && cd deps/ex_secp256k1 && mix deps.get && mix compile
 RUN mix phx.digest
 
 RUN mkdir -p /opt/release \
-  && mix release blockscout \
-  && mv _build/${MIX_ENV}/rel/blockscout /opt/release
+    && mix release blockscout \
+    && mv _build/${MIX_ENV}/rel/blockscout /opt/release
 
 ##############################################################
 FROM hexpm/elixir:1.14.5-erlang-25.3.2.4-alpine-3.18.2
